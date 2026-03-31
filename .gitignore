@@ -11,4 +11,4 @@ appsettings.Development.json
 msc.log
 msbuild.log
 temp_build/
-FirstAidPlus/wwwroot/lib/
+
