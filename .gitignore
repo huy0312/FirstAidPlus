@@ -1,0 +1,14 @@
+[Bb]in/
+[Oo]bj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.log
+*.tmp
+.DS_Store
+appsettings.Development.json
+msc.log
+msbuild.log
+temp_build/
+FirstAidPlus/wwwroot/lib/

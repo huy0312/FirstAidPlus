@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:18
+    container_name: firstaidplus_db
+    restart: always
+    environment:
+      POSTGRES_DB: first_aid_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: FirstAidPlus/Dockerfile
+    container_name: firstaidplus_app
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=first_aid_db;Username=postgres;Password=123
+      - Authentication__Google__ClientId=${GOOGLE_CLIENT_ID}
+      - Authentication__Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
+      - Gemini__ApiKey=${GEMINI_API_KEY}
+      - PayOS__ClientId=${PAYOS_CLIENT_ID}
+      - PayOS__ApiKey=${PAYOS_API_KEY}
+      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
+
+volumes:
+  pgdata:

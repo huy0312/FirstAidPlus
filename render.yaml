@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: firstaidplus-app
+    env: docker
+    dockerContext: .
+    dockerfilePath: FirstAidPlus/Dockerfile
+    plan: free # Có thể đổi thành 'starter' nếu cần hiệu năng cao hơn
+    region: singapore # Chọn region gần Việt Nam nhất
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromService:
+          type: db
+          name: firstaidplus-db
+          property: connectionString
+      - key: Authentication__Google__ClientId
+        sync: false # Bạn tự điền trên giao diện Render
+      - key: Authentication__Google__ClientSecret
+        sync: false
+      - key: PayOS__ClientId
+        sync: false
+      - key: PayOS__ApiKey
+        sync: false
+      - key: PayOS__ChecksumKey
+        sync: false
+      - key: Gemini__ApiKey
+        sync: false
+
+  - type: db
+    name: firstaidplus-db
+    engine: postgres
+    plan: free # Hoặc 'starter'
+    region: singapore
+    databaseName: first_aid_db
+    user: postgres
+    ipAllowList: [] # Chỉ cho phép nội bộ truy cập
