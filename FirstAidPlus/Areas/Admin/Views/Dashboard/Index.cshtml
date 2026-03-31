@@ -1,0 +1,504 @@
+@model FirstAidPlus.Areas.Admin.ViewModels.AdminDashboardVM
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <h3 class="fw-bold text-slate-800">Tổng quan hệ thống</h3>
+        <p class="text-slate-500">Chào mừng trở lại, đây là những gì đang diễn ra với FirstAid+ hôm nay.</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 stats-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="icon-box-premium bg-indigo-50 text-indigo-600 rounded-3">
+                            <i class="bi bi-people-fill fs-4"></i>
+                        </div>
+                        <span class="badge bg-green-100 text-green-700 rounded-pill">+2.5%</span>
+                    </div>
+                    <div class="text-slate-500 small fw-bold text-uppercase ls-1 mb-1">Tổng người dùng</div>
+                    <h2 class="fw-bold mb-0">@Model.TotalUsers.ToString("N0")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 stats-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="icon-box-premium bg-blue-50 text-blue-600 rounded-3">
+                            <i class="bi bi-journal-bookmark-fill fs-4"></i>
+                        </div>
+                        <span class="badge bg-green-100 text-green-700 rounded-pill">+4.2%</span>
+                    </div>
+                    <div class="text-slate-500 small fw-bold text-uppercase ls-1 mb-1">Khóa học</div>
+                    <h2 class="fw-bold mb-0">@Model.TotalCourses</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 stats-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="icon-box-premium bg-emerald-50 text-emerald-600 rounded-3">
+                            <i class="bi bi-wallet2 fs-4"></i>
+                        </div>
+                        <span class="badge bg-green-100 text-green-700 rounded-pill">+12%</span>
+                    </div>
+                    <div class="text-slate-500 small fw-bold text-uppercase ls-1 mb-1">Tổng doanh thu</div>
+                    <h2 class="fw-bold mb-0">@Model.TotalRevenue.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 stats-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="icon-box-premium bg-amber-50 text-amber-600 rounded-3">
+                            <i class="bi bi-star-fill fs-4"></i>
+                        </div>
+                        <span class="badge bg-blue-100 text-blue-700 rounded-pill">@Model.TotalReviews đánh giá</span>
+                    </div>
+                    <div class="text-slate-500 small fw-bold text-uppercase ls-1 mb-1">Đánh giá trung bình</div>
+                    <h2 class="fw-bold mb-0">@Model.AverageRating.ToString("F1") <span class="text-slate-400 fs-6">/ 5.0</span></h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-slate-800">Biểu đồ tăng trưởng</h5>
+                        <p class="text-slate-500 small mb-0">Thống kê đăng ký mới và doanh thu</p>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div style="height: 350px;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100 rounded-4">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-1 text-slate-800">Khóa học phổ biến nhất</h5>
+                    <p class="text-slate-500 small mb-0">Số lượt đăng ký theo khóa học</p>
+                </div>
+                <div class="card-body p-4 mt-2">
+                    <div style="height: 300px;">
+                        <canvas id="popularityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row g-4 mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-3">
+                    <h5 class="fw-bold mb-1 text-slate-800">Xếp hạng đánh giá khóa học</h5>
+                    <p class="text-slate-500 small mb-0">Điểm đánh giá trung bình cho tất cả các khóa học</p>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Tên khóa học</th>
+                                    <th class="text-center">Số lượt đánh giá</th>
+                                    <th class="pe-4 text-end">Điểm đánh giá trung bình</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(var cr in Model.CourseRatings)
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="fw-bold text-slate-800">@cr.CourseTitle</div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-blue-50 text-blue-600 rounded-pill px-3 py-1">@cr.ReviewCount đánh giá</span>
+                                        </td>
+                                        <td class="pe-4 text-end">
+                                            <div class="d-flex align-items-center justify-content-end">
+                                                <span class="text-amber-400 me-2">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        <i class="bi bi-star@(i <= cr.AverageRating ? "-fill" : (i - 0.5 <= cr.AverageRating ? "-half" : ""))"></i>
+                                                    }
+                                                </span>
+                                                <span class="fw-bold text-slate-800">@cr.AverageRating.ToString("F1")</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+
+        <!-- Recent Transactions Table -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-slate-800">Lịch sử giao dịch</h5>
+                        <p class="text-slate-500 small mb-0">5 giao dịch gần đây nhất</p>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-custom align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Người dùng</th>
+                                <th>Gói đăng ký</th>
+                                <th>Số tiền</th>
+                                <th>Trạng thái</th>
+                                <th class="pe-4 text-end">Ngày GD</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var tx in Model.RecentTransactions)
+                            {
+                                if (tx == null) continue;
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle-sm me-3" style="background-color: var(--admin-primary)">
+                                                @((tx.User?.Username ?? "U").Substring(0,1).ToUpper())
+                                            </div>
+                                            <div class="fw-bold text-slate-800">@(tx.User?.FullName ?? tx.User?.Username ?? "N/A")</div>
+                                        </div>
+                                    </td>
+                                    <td class="text-dark fw-medium">@(tx.Plan?.Name ?? "N/A")</td>
+                                    <td class="fw-bold text-slate-800">@tx.Amount.ToString("C0", CultureInfo.GetCultureInfo("vi-VN"))</td>
+                                    <td>
+                                        @if(tx.Status == "Success") {
+                                            <span class="badge-custom badge-success">Thành công</span>
+                                        } else if(tx.Status == "Pending") {
+                                            <span class="badge-custom badge-warning">Chờ xử lý</span>
+                                        } else {
+                                            <span class="badge-custom badge-danger">Thất bại</span>
+                                        }
+                                    </td>
+                                    <td class="pe-4 text-end text-slate-500 small">
+                                        @tx.CreatedAt.ToString("dd/MM HH:mm")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Feedbacks -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-3">
+                    <h5 class="fw-bold mb-1 text-slate-800">Đánh giá mới nhất</h5>
+                    <p class="text-slate-500 small mb-0">Phản hồi từ người dùng về các khóa học</p>
+                </div>
+                <div class="card-body p-4 pt-0">
+                    <div class="feedback-list">
+                        @foreach(var fb in Model.RecentFeedbacks)
+                        {
+                            if (fb == null) continue;
+                            <div class="feedback-item pb-3 mb-3 border-bottom border-light">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle-xs me-2" style="background-color: #f1f5f9; color: #64748b;">
+                                            @((fb.User?.Username ?? "U").Substring(0,1).ToUpper())
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-slate-800 small">@(fb.User?.FullName ?? fb.User?.Username ?? "N/A")</div>
+                                            <div class="text-indigo-600 extra-small">@(fb.Course?.Title ?? "N/A")</div>
+                                        </div>
+
+                                    </div>
+                                    <div class="text-amber-400 small">
+                                        @for(int i=0; i<5; i++) {
+                                            <i class="bi bi-star@(i < fb.Rating ? "-fill" : "")"></i>
+                                        }
+                                    </div>
+                                </div>
+                                <p class="text-slate-600 small mb-0 fst-italic">"@fb.Comment"</p>
+                                <div class="text-slate-400 extra-small mt-1 text-end">@fb.CreatedAt.ToString("dd/MM/yyyy")</div>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .stats-card {
+        transition: all 0.3s ease;
+        border-radius: 16px;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+    }
+    .icon-box-premium {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .bg-indigo-50 { background-color: #eef2ff; }
+    .text-indigo-600 { color: #4f46e5; }
+    .bg-blue-50 { background-color: #eff6ff; }
+    .text-blue-600 { color: #2563eb; }
+    .bg-emerald-50 { background-color: #ecfdf5; }
+    .text-emerald-600 { color: #059669; }
+    .bg-amber-50 { background-color: #fffbeb; }
+    .text-amber-600 { color: #d97706; }
+    
+    .bg-green-100 { background-color: #dcfce7; }
+    .text-green-700 { color: #15803d; }
+    
+    .table-custom thead th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .table-custom tbody td {
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+    .avatar-circle-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .badge-custom {
+        padding: 0.35em 0.8em;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+    .badge-danger { background-color: #fef2f2; color: #dc2626; }
+    .badge-warning { background-color: #fffbeb; color: #d97706; }
+    .badge-info { background-color: #eff6ff; color: #2563eb; }
+    .badge-success { background-color: #ecfdf5; color: #059669; }
+    
+    .text-slate-800 { color: #1e293b; }
+    .text-slate-600 { color: #475569; }
+    .text-slate-500 { color: #64748b; }
+
+    .avatar-circle-xs {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    .extra-small { font-size: 0.7rem; }
+</style>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart Configs
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.color = '#64748b';
+        
+        // Main Chart
+        const ctxMain = document.getElementById('mainChart').getContext('2d');
+        const gradientReg = ctxMain.createLinearGradient(0, 0, 0, 400);
+        gradientReg.addColorStop(0, 'rgba(79, 70, 229, 0.1)');
+        gradientReg.addColorStop(1, 'rgba(79, 70, 229, 0)');
+
+        new Chart(ctxMain, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.MonthLabels)),
+                datasets: [
+                    {
+                        label: 'Đăng ký mới',
+                        data: @Html.Raw(Json.Serialize(Model.RegistrationData)),
+                        backgroundColor: gradientReg,
+                        borderColor: '#4f46e5',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#4f46e5',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Doanh thu (triệu VNĐ)',
+                        data: @Html.Raw(Json.Serialize(Model.RevenueData.Select(d => d / 1000000))),
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#10b981',
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: { 
+                        position: 'top', 
+                        align: 'end',
+                        labels: { 
+                            usePointStyle: true, 
+                            boxWidth: 8,
+                            padding: 20,
+                            font: { size: 12, weight: '600' }
+                        } 
+                    },
+                    tooltip: { 
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        titleFont: { size: 14, weight: '700' },
+                        bodyFont: { size: 13 },
+                        cornerRadius: 12,
+                        displayColors: true
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { weight: '500' } }
+                    },
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { weight: '500' } }
+                    },
+                    y1: { 
+                        beginAtZero: true, 
+                        position: 'right', 
+                        grid: { display: false },
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Role Chart
+        new Chart(document.getElementById('roleChart'), {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.RoleLabels)),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.RoleData)),
+                    backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 12
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { 
+                            usePointStyle: true, 
+                            padding: 25,
+                            font: { size: 12, weight: '500' }
+                        } 
+                    }
+                },
+                cutout: '80%',
+                radius: '90%'
+            }
+        });
+
+        // Popularity Chart
+        const ctxPop = document.getElementById('popularityChart').getContext('2d');
+        new Chart(ctxPop, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.CoursePopularityLabels)),
+                datasets: [{
+                    label: 'Số học viên',
+                    data: @Html.Raw(Json.Serialize(Model.CoursePopularityData)),
+                    backgroundColor: 'rgba(79, 70, 229, 0.8)',
+                    borderRadius: 8,
+                    barThickness: 30
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        beginAtZero: true
+                    },
+                    y: { 
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 11, weight: '600' }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
+

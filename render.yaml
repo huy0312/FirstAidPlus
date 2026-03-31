@@ -26,6 +26,26 @@ services:
         sync: false
       - key: Gemini__ApiKey
         sync: false
+      - key: EmailSettings__MailServer
+        sync: false
+      - key: EmailSettings__MailPort
+        sync: false
+      - key: EmailSettings__SenderName
+        sync: false
+      - key: EmailSettings__SenderEmail
+        sync: false
+      - key: EmailSettings__SenderPassword
+        sync: false
+      - key: VnPay__TmnCode
+        sync: false
+      - key: VnPay__HashSecret
+        sync: false
+      - key: Momo__PartnerCode
+        sync: false
+      - key: Momo__AccessKey
+        sync: false
+      - key: Momo__SecretKey
+        sync: false
 
   - type: db
     name: firstaidplus-db

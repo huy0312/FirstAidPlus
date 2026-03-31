@@ -1,0 +1,738 @@
+@model FirstAidPlus.ViewModels.CourseDetailViewModel
+@functions {
+    public string GetEmbedUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return url;
+        if (url.Contains("youtube.com/embed")) return url;
+        
+        if (url.Contains("youtube.com/watch?v="))
+        {
+            var videoId = url.Split("v=")[1];
+            var ampersandPosition = videoId.IndexOf('&');
+            if (ampersandPosition != -1)
+            {
+                videoId = videoId.Substring(0, ampersandPosition);
+            }
+            return $"https://www.youtube.com/embed/{videoId}";
+        }
+        
+        if (url.Contains("youtu.be/"))
+        {
+            var videoId = url.Split('/').Last();
+            return $"https://www.youtube.com/embed/{videoId}";
+        }
+
+        return url;
+    }
+}
+@{
+    ViewData["Title"] = Model.Course.Title;
+    var embedUrl = GetEmbedUrl(Model.Course.VideoUrl);
+    var syllabusCount = Model.Syllabus?.Count ?? 0;
+    var totalLessons = Model.Syllabus?.Sum(s => s.LessonCount) ?? 0;
+    
+    // Calculate dynamic stats for sidebar
+    var allLessons = Model.Course.Syllabus?.SelectMany(s => s.Lessons).ToList() ?? new List<FirstAidPlus.Models.CourseLesson>();
+    var videoCount = allLessons.Count(l => l.Type == "Video");
+    var documentCount = allLessons.Count(l => l.Type != "Video"); 
+}
+
+<style>
+    :root {
+        --udemy-dark: #1c1d1f;
+        --udemy-purple: #a435f0;
+        --udemy-purple-hover: #8710d8;
+        --udemy-text-muted: #6a6f73;
+        --udemy-border: #d1d7dc;
+        --brand-red: #d71920;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--udemy-dark);
+        background-color: #fff;
+    }
+
+    /* Related Courses */
+    .related-course-card {
+        border: 1px solid var(--udemy-border);
+        border-radius: 8px;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        background: #fff;
+    }
+    .related-course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        color: inherit;
+    }
+    .related-course-card img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+    }
+    .related-course-card .p-3 {
+        padding: 0.75rem !important;
+    }
+    .related-course-card h6 {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 2.6rem;
+    }
+
+    /* ========== udemy HERO ========== */
+    .course-hero {
+        background-color: var(--udemy-dark);
+        color: #fff;
+        padding: 40px 0;
+        position: relative;
+    }
+    .hero-content {
+        /* Remove fixed max-width to allow grid to handle it */
+    }
+    .breadcrumb-custom {
+        margin-bottom: 16px;
+    }
+    .breadcrumb-custom a {
+        color: #cec0fc;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+    .hero-title {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 12px;
+    }
+    .hero-subtitle {
+        font-size: 1.15rem;
+        line-height: 1.4;
+        margin-bottom: 16px;
+        color: #fff;
+    }
+    .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+    }
+    .badge-udemy-hot {
+        background-color: #eceb98;
+        color: #3d3c0a;
+        font-weight: 700;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+    .rating-number {
+        color: #f6993f;
+        font-weight: 700;
+        margin-right: 4px;
+    }
+    .star-rating-udemy {
+        color: #f6993f;
+        font-size: 0.75rem;
+    }
+    .meta-item i {
+        margin-right: 8px;
+        color: #fff;
+    }
+
+    /* ========== udemy PURCHASE CARD (Sidebar) ========== */
+    .purchase-card-container {
+        position: relative;
+    }
+    .purchase-card {
+        background: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.08);
+        border: 1px solid var(--udemy-border);
+        width: 100%;
+        max-width: 340px;
+        z-index: 10;
+        margin-top: -320px; /* Pull into hero area */
+    }
+    .purchase-card-img-wrapper {
+        position: relative;
+        cursor: pointer;
+    }
+    .purchase-card-img-wrapper img {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+    }
+    .play-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.3);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        transition: background 0.2s;
+    }
+    .play-overlay:hover {
+        background: rgba(0,0,0,0.5);
+    }
+    .play-overlay i {
+        font-size: 3.5rem;
+    }
+    .play-overlay span {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-top: 8px;
+    }
+
+    .purchase-card-content {
+        padding: 24px;
+    }
+    .btn-udemy-primary {
+        background-color: var(--brand-red);
+        color: #fff;
+        border: none;
+        width: 100%;
+        padding: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 12px;
+        border-radius: 0;
+    }
+    .btn-udemy-primary:hover {
+        background-color: #b5131a;
+        color: #fff;
+    }
+    .btn-udemy-outline {
+        background-color: #fff;
+        color: var(--udemy-dark);
+        border: 1px solid var(--udemy-dark);
+        width: 100%;
+        padding: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 12px;
+        border-radius: 0;
+    }
+    .btn-udemy-outline:hover {
+        background-color: #f7f9fa;
+        color: var(--udemy-dark);
+    }
+
+    .includes-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+    .include-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        color: var(--udemy-dark);
+    }
+    .include-item i {
+        font-size: 0.95rem;
+    }
+
+    /* ========== MAIN CONTENT sections ========== */
+    .section-container {
+        border: 1px solid var(--udemy-border);
+        padding: 24px;
+        margin-bottom: 32px;
+    }
+    .section-title-udemy {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+    .objectives-list {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0;
+        list-style: none;
+    }
+    .objective-item {
+        width: 50%;
+        padding-right: 16px;
+        margin-bottom: 12px;
+        display: flex;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: var(--udemy-dark);
+    }
+    .objective-item i {
+        margin-top: 4px;
+        font-size: 0.8rem;
+    }
+
+    /* Content Accordion */
+    .syllabus-udemy .accordion-item {
+        border-radius: 0;
+        border: 1px solid var(--udemy-border);
+        border-bottom: none;
+    }
+    .syllabus-udemy .accordion-item:last-child {
+        border-bottom: 1px solid var(--udemy-border);
+    }
+    .syllabus-udemy .accordion-button {
+        background-color: #f7f9fa;
+        color: var(--udemy-dark);
+        font-weight: 700;
+        padding: 16px;
+        box-shadow: none !important;
+    }
+    .syllabus-udemy .accordion-button:not(.collapsed) {
+        background-color: #f7f9fa;
+    }
+    .lesson-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .lesson-row:last-child {
+        border-bottom: none;
+    }
+    .lesson-info {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    /* Floating effect for sidebar */
+    @@media (min-width: 992px) {
+        .purchase-card-container {
+            position: sticky;
+            top: 20px; /* Adjust based on navbar height */
+            z-index: 100;
+            height: fit-content;
+        }
+    }
+    @@media (max-width: 991px) {
+        .purchase-card {
+            position: relative;
+            top: 0;
+            max-width: 100%;
+            margin-bottom: 24px;
+        }
+    }
+</style>
+
+
+<!-- ========== udemy HERO SECTION ========== -->
+<div class="course-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 hero-content">
+                <div class="breadcrumb-custom">
+                    <a asp-controller="Course" asp-action="Index">Khóa học</a> <span class="mx-2" style="color: #cec0fc; font-size: 0.7rem;">&gt;</span> 
+                    <a href="#">Sơ cấp cứu</a>
+                </div>
+                
+                <h1 class="hero-title">@Model.Course.Title</h1>
+                <p class="hero-subtitle">@Model.Course.Description</p>
+                
+                <div class="hero-meta">
+                    @if (Model.Course.IsPopular)
+                    {
+                        <span class="badge-udemy-hot">Bán chạy nhất</span>
+                    }
+                    
+                    @if (Model.TotalReviews > 0)
+                    {
+                        <div class="meta-item">
+                            <span class="rating-number">@Model.AverageRating.ToString("F1")</span>
+                            <span class="star-rating-udemy">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="bi @(i <= Math.Round(Model.AverageRating) ? "bi-star-fill" : "bi-star")"></i>
+                                }
+                            </span>
+                            <a href="#reviews" class="ms-1" style="color: #cec0fc; text-decoration: underline;">(@Model.TotalReviews xếp hạng)</a>
+                        </div>
+                    }
+
+                    <div class="meta-item">
+                        <span>@(ViewBag.EnrollmentCount ?? 0) học viên</span>
+                    </div>
+                </div>
+
+                <div class="hero-meta mb-0 pb-0">
+                    <div class="meta-item">
+                        Được tạo bởi <a href="#" style="color: #cec0fc; text-decoration: underline; font-weight: 700;">@(Model.Course.Instructor?.FullName ?? "FirstAid+ Experts")</a>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-exclamation-circle"></i> Lần cập nhật gần nhất: @DateTime.Now.ToString("MM/yyyy")
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-globe"></i> Tiếng Việt
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MAIN CONTENT ========== -->
+<div class="container py-5">
+    <div class="row g-5">
+        <!-- Left Column (Main Content) -->
+        <div class="col-lg-8">
+            
+            <!-- What you'll learn section -->
+            @if (Model.Objectives != null && Model.Objectives.Any())
+            {
+                <div class="section-container">
+                    <h3 class="section-title-udemy">Bạn sẽ học được gì</h3>
+                    <div class="objectives-list">
+                        @foreach (var obj in Model.Objectives)
+                        {
+                            <div class="objective-item">
+                                <i class="bi bi-check2"></i>
+                                <span>@obj</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            <!-- Course content section -->
+            @if (Model.Syllabus != null && Model.Syllabus.Any())
+            {
+                <div class="mb-5">
+                    <h3 class="section-title-udemy">Nội dung khóa học</h3>
+                    <div class="d-flex justify-content-between mb-2 small text-muted">
+                        <span>@syllabusCount chương • @totalLessons bài học</span>
+                        <a href="javascript:void(0)" onclick="toggleAllSyllabus()" id="toggleSyllabusBtn" class="fw-bold" style="color: var(--udemy-purple); text-decoration: none;">Mở rộng tất cả các phần</a>
+                    </div>
+                    
+                    <div class="accordion syllabus-udemy" id="courseSyllabus">
+                        @for (int i = 0; i < Model.Syllabus.Count; i++)
+                        {
+                            var item = Model.Syllabus[i];
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button @(i != 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#syl-@i">
+                                        <div class="d-flex justify-content-between w-100 me-3">
+                                            <span>@item.Title</span>
+                                            <span class="fw-normal small text-muted">@item.LessonCount bài</span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="syl-@i" class="accordion-collapse collapse @(i == 0 ? "show" : "")">
+                                    <div class="accordion-body p-0">
+                                         @{
+                                            var courseSyllabus = Model.Course.Syllabus.FirstOrDefault(s => s.Title == item.Title);
+                                            var lessons = courseSyllabus?.Lessons?.OrderBy(l => l.OrderIndex).ThenBy(l => l.CreatedAt).ToList();
+                                        }
+                                        @if (lessons != null && lessons.Any())
+                                        {
+                                            @foreach (var lesson in lessons)
+                                            {
+                                                <div class="lesson-row">
+                                                    <div class="lesson-info">
+                                                        <i class="bi @(lesson.Type == "Video" ? "bi-play-circle-fill" : "bi-file-text")"></i>
+                                                        <span class="@(lesson.Type == "Video" ? "text-primary" : "")" style="cursor: pointer; text-decoration: underline;">@lesson.Title</span>
+                                                    </div>
+                                                     <span class="text-muted small">@(lesson.Duration > 0 ? lesson.Duration + ":00" : "0:00")</span>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+
+            <!-- Instructor section -->
+            <div class="mb-5 section-container">
+                <h3 class="section-title-udemy mb-4">Giảng viên hướng dẫn</h3>
+                <div class="row align-items-center g-4">
+                    <div class="col-sm-auto text-center">
+                        <img src="@(string.IsNullOrEmpty(Model.Course.Instructor?.AvatarUrl) ? "/images/default-avatar.png" : Model.Course.Instructor.AvatarUrl)" 
+                             alt="@Model.Course.Instructor?.FullName"
+                             class="rounded-circle shadow-sm"
+                             style="width: 120px; height: 120px; object-fit: cover; border: 4px solid #f8f9fa;" />
+                    </div>
+                    <div class="col">
+                        <h4 class="fw-bold mb-1 text-danger">@(Model.Course.Instructor?.FullName ?? "FirstAid+ Experts")</h4>
+                        <p class="text-muted small mb-3">Chuyên gia sơ cấp cứu chuyên nghiệp</p>
+                        
+                        <div class="d-flex flex-wrap gap-4 mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <span class="small fw-bold">4.8 xếp hạng giảng viên</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-person-check-fill text-primary"></i>
+                                <span class="small fw-bold">1,234 học viên</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-play-btn-fill text-danger"></i>
+                                <span class="small fw-bold">15 khóa học</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-muted lh-lg" style="font-size: 0.95rem;">
+                        @Model.Course.Instructor?.Bio
+                    </p>
+                </div>
+            </div>
+
+            <!-- Đánh giá -->
+            <div class="mb-5">
+                <h3 class="section-title mb-4">Đánh giá từ học viên</h3>
+                <div class="mt-3">
+                    @if (Model.Feedbacks != null && Model.Feedbacks.Any())
+                    {
+                        <!-- Rating Summary -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <div class="rating-summary h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <div class="rating-big">@Model.AverageRating.ToString("F1")</div>
+                                    <div class="star-rating d-flex gap-1 my-2">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= Math.Round(Model.AverageRating))
+                                            {
+                                                <i class="bi bi-star-fill"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-star" style="color: rgba(255,193,7,0.4);"></i>
+                                            }
+                                        }
+                                    </div>
+                                    <span class="text-muted small">@Model.TotalReviews đánh giá</span>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="d-flex flex-column gap-3">
+                                    @foreach (var fb in Model.Feedbacks.Take(3))
+                                    {
+                                        <div class="feedback-card">
+                                            <div class="d-flex gap-3">
+                                                <div class="feedback-avatar">
+                                                    @(fb.User?.FullName?.Substring(0, 1).ToUpper() ?? "U")
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <strong class="small">@(fb.User?.FullName ?? "Ẩn danh")</strong>
+                                                        <small class="text-muted">@fb.CreatedAt.ToString("dd/MM/yyyy")</small>
+                                                    </div>
+                                                    <div class="star-rating d-flex gap-1 mb-2">
+                                                        @for (int i = 1; i <= 5; i++)
+                                                        {
+                                                            <i class="bi @(i <= fb.Rating ? "bi-star-fill" : "bi-star")" style="font-size: 0.75rem;"></i>
+                                                        }
+                                                    </div>
+                                                    <p class="mb-0 text-muted small lh-lg">@fb.Comment</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-chat-square-text text-muted" style="font-size: 2.5rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                        </div>
+                    }
+
+                    <!-- Feedback Form -->
+                    @if (Model.HasDirectEnrollment)
+                    {
+                        <div class="feedback-form-card mt-4">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square me-2"></i>Viết đánh giá của bạn</h6>
+                            <form asp-controller="Course" asp-action="SubmitFeedback" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="courseId" value="@Model.Course.Id" />
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted">Đánh giá sao</label>
+                                    <div class="d-flex gap-2" id="star-selector">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <label style="cursor: pointer; font-size: 1.5rem;">
+                                                <input type="radio" name="rating" value="@i" class="d-none" required>
+                                                <i class="bi bi-star star-select" data-value="@i" style="color: #dee2e6; transition: color 0.2s;"></i>
+                                            </label>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <textarea name="comment" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn về khóa học này..." style="border-radius: 12px; border-color: #e0e0e0;" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                                    <i class="bi bi-send me-2"></i>Gửi đánh giá
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Khóa học liên quan -->
+            @if (Model.RelatedCourses != null && Model.RelatedCourses.Any())
+            {
+                <div class="mb-5">
+                    <h3 class="section-title mb-4">Khóa học liên quan</h3>
+                    <div class="row g-4 mt-2">
+                        @foreach (var rc in Model.RelatedCourses)
+                        {
+                            <div class="col-md-3 col-sm-6">
+                                <a asp-action="Details" asp-route-id="@rc.Id" class="related-course-card d-block">
+                                    <img src="@(string.IsNullOrEmpty(rc.ImageUrl) ? "/images/hero-bg.jpg" : rc.ImageUrl)" alt="@rc.Title">
+                                    <div class="p-3">
+                                        <h6 class="fw-bold mb-1" title="@rc.Title">@rc.Title</h6>
+                                        @{ var rcFeedbacks = rc.Feedbacks; }
+                                        @if (rcFeedbacks != null && rcFeedbacks.Any())
+                                        {
+                                            var rcAvg = rcFeedbacks.Average(f => f.Rating);
+                                            <div class="d-flex align-items-center gap-1 text-warning small mb-1">
+                                                <i class="bi bi-star-fill"></i>
+                                                <span class="fw-bold text-dark">@rcAvg.ToString("F1")</span>
+                                                <span class="text-muted">(@rcFeedbacks.Count())</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- ========== SIDEBAR (PURCHASE CARD) ========== -->
+        <div class="col-lg-4 purchase-card-container">
+            <div class="purchase-card shadow" id="purchaseCard">
+                <div class="purchase-card-img-wrapper" onclick="document.getElementById('promoVideoModal')?.$modal?.show()">
+                    <img src="@(string.IsNullOrEmpty(Model.Course.ImageUrl) ? "/images/hero-bg.jpg" : Model.Course.ImageUrl)" alt="@Model.Course.Title">
+                    <div class="play-overlay">
+                        <i class="bi bi-play-circle-fill"></i>
+                        <span>Xem trước khóa học</span>
+                    </div>
+                </div>
+                
+                <div class="purchase-card-content">
+                    @if (Model.HasDirectEnrollment)
+                    {
+                        <div class="text-center mb-3">
+                            <i class="bi bi-patch-check-fill text-success fs-1"></i>
+                            <h5 class="fw-bold mt-2">Bạn đã tham gia</h5>
+                        </div>
+                        
+                        @if (Model.FirstLessonId.HasValue)
+                        {
+                            <a asp-controller="Course" asp-action="Lesson" asp-route-id="@Model.FirstLessonId.Value" class="btn btn-udemy-primary">
+                                Vào học ngay
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <span class="fs-2 fw-bold">Miễn phí</span>
+                        </div>
+                        
+                        <form asp-controller="Enrollment" asp-action="Purchase" method="post">
+                            <input type="hidden" name="courseId" value="@Model.Course.Id" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-udemy-primary">Tham gia ngay</button>
+                        </form>
+                        
+                        <div class="text-center small text-muted mb-3">Bảo đảm hoàn tiền trong 30 ngày</div>
+                    }
+                    
+                    <div class="includes-section">
+                        <div class="includes-title">Khóa học này bao gồm:</div>
+                        <div class="include-item">
+                            <i class="bi bi-play-btn"></i>
+                            <span>@videoCount bài giảng video</span>
+                        </div>
+                        <div class="include-item">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>@documentCount tài liệu học tập</span>
+                        </div>
+                        <div class="include-item">
+                            <i class="bi bi-infinity"></i>
+                            <span>Truy cập trọn đời</span>
+                        </div>
+                        <div class="include-item">
+                            <i class="bi bi-phone"></i>
+                            <span>Truy cập trên thiết bị di động</span>
+                        </div>
+                        <div class="include-item">
+                            <i class="bi bi-award"></i>
+                            <span>Giấy chứng nhận hoàn thành</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // No custom scroll logic needed for standard sticky behavior
+
+    // Toggle Syllabus
+    function toggleAllSyllabus() {
+        const btn = document.getElementById('toggleSyllabusBtn');
+        const isExpanded = btn.innerText.includes('Thu nhỏ');
+        
+        const collapses = document.querySelectorAll('.syllabus-udemy .accordion-collapse');
+        collapses.forEach(c => {
+            const bsCollapse = bootstrap.Collapse.getInstance(c) || new bootstrap.Collapse(c, { toggle: false });
+            if (isExpanded) bsCollapse.hide(); else bsCollapse.show();
+        });
+        
+        btn.innerText = isExpanded ? 'Mở rộng tất cả các phần' : 'Thu nhỏ tất cả các phần';
+    }
+
+    // Star selector for feedback form
+    document.querySelectorAll('.star-select').forEach(star => {
+        star.addEventListener('mouseenter', function() {
+            const val = parseInt(this.dataset.value);
+            document.querySelectorAll('.star-select').forEach((s, i) => {
+                s.style.color = (i + 1 <= val) ? '#ffc107' : '#dee2e6';
+            });
+        });
+        star.addEventListener('click', function() {
+            const val = parseInt(this.dataset.value);
+            this.closest('label').querySelector('input').checked = true;
+            document.querySelectorAll('.star-select').forEach((s, i) => {
+                s.className = (i + 1 <= val) ? 'bi bi-star-fill star-select' : 'bi bi-star star-select';
+                s.style.color = (i + 1 <= val) ? '#ffc107' : '#dee2e6';
+            });
+        });
+    });
+    document.querySelector('#star-selector')?.addEventListener('mouseleave', function() {
+        const checked = this.querySelector('input:checked');
+        const val = checked ? parseInt(checked.value) : 0;
+        document.querySelectorAll('.star-select').forEach((s, i) => {
+            s.style.color = (i + 1 <= val) ? '#ffc107' : '#dee2e6';
+        });
+    });
+</script>

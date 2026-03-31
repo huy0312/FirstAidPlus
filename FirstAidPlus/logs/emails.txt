@@ -1,0 +1,31 @@
+[2/6/2026 11:32:24 PM] TO: huypersonal0312@gmail.com
+SUBJECT: Reset Password
+MESSAGE:
+Vui lòng nhấp vào đây để đặt lại mật khẩu của bạn: <a href='https://localhost:7103/Account/ResetPassword?token=bfb28aef-dff3-44de-9875-9963e3fb96c9&email=huypersonal0312@gmail.com'>link</a>
+---------------------------------------------------
+
+[2/7/2026 10:35:58 AM] TO: dropgcsgo@gmail.com
+SUBJECT: [FirstAid+] Xác thực tài khoản của bạn
+MESSAGE:
+
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                            <h1 style='color: white; margin: 0;'>Chào mừng đến với FirstAid+</h1>
+                        </div>
+                        <div style='background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                            <p style='font-size: 16px; color: #333;'>Xin chào <strong>Nguyễn Hữu Huy</strong>,</p>
+                            <p style='color: #666; line-height: 1.6;'>Cảm ơn bạn đã đăng ký tài khoản tại <strong>FirstAid+</strong>. Để hoàn tất quá trình đăng ký và bắt đầu trải nghiệm các khóa học sơ cấp cứu chuyên nghiệp, vui lòng xác thực email của bạn.</p>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='https://localhost:7103/Account/ConfirmEmail?token=54eb196a-3b78-4e25-aa86-2ec1e090007d&email=dropgcsgo@gmail.com' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 40px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;'>Xác Thực Tài Khoản</a>
+                            </div>
+                            <p style='color: #999; font-size: 13px;'>Nếu nút không hoạt động, bạn có thể sao chép đường link sau vào trình duyệt:</p>
+                            <p style='color: #667eea; font-size: 12px; word-break: break-all;'>https://localhost:7103/Account/ConfirmEmail?token=54eb196a-3b78-4e25-aa86-2ec1e090007d&email=dropgcsgo@gmail.com</p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin: 25px 0;'/>
+                            <p style='color: #999; font-size: 12px;'>Link này sẽ hết hạn sau 24 giờ. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</p>
+                        </div>
+                        <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px;'>
+                            <p style='margin: 0; color: #666; font-size: 12px;'>© 2024 FirstAid+. Mọi quyền được bảo lưu.</p>
+                        </div>
+                    </div>
+---------------------------------------------------
+

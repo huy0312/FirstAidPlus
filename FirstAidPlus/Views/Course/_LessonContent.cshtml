@@ -1,0 +1,823 @@
+@model FirstAidPlus.Models.CourseLesson
+@{
+    var course = ViewBag.Course as FirstAidPlus.Models.Course;
+    int? prevId = ViewBag.PrevLessonId;
+    int? nextId = ViewBag.NextLessonId;
+}
+
+@functions {
+    public string GetEmbedUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return url;
+        if (url.Contains("youtube.com/embed")) return url;
+        if (url.Contains("youtube.com/watch?v="))
+        {
+            var videoId = url.Split("v=")[1];
+            var amp = videoId.IndexOf('&');
+            if (amp != -1) videoId = videoId.Substring(0, amp);
+            return $"https://www.youtube.com/embed/{videoId}";
+        }
+        if (url.Contains("youtu.be/"))
+        {
+            return $"https://www.youtube.com/embed/{url.Split('/').Last()}";
+        }
+        return url;
+    }
+}
+
+<style>
+    .udemy-video-wrapper {
+        background-color: #1c1d1f;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        padding: 40px 0; /* Add vertical padding */
+    }
+    .udemy-video-container {
+        width: 100%;
+        max-width: 850px; /* Reduced from 1000px */
+        margin: 0 auto;
+    }
+    
+    .udemy-tabs-container {
+        padding: 0 48px;
+        margin-top: 16px;
+    }
+    .udemy-nav-tabs {
+        border-bottom: 1px solid #d1d7dc;
+        display: flex;
+        gap: 24px;
+    }
+    .udemy-nav-tabs .nav-link {
+        color: #6a6f73;
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 12px 4px;
+        border: none;
+        background: transparent;
+        position: relative;
+    }
+    .udemy-nav-tabs .nav-link:hover {
+        color: #1c1d1f;
+    }
+    .udemy-nav-tabs .nav-link.active {
+        color: #1c1d1f;
+    }
+    .udemy-nav-tabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #1c1d1f;
+    }
+    
+    .udemy-tab-content {
+        padding: 24px 0 64px 0;
+    }
+    .udemy-lesson-content-html {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #1c1d1f;
+    }
+    .udemy-lesson-content-html h1, .udemy-lesson-content-html h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        margin-top: 32px;
+    }
+    .udemy-lesson-content-html p {
+        margin-bottom: 16px;
+    }
+    
+    /* Next prev floating bar */
+    .udemy-nav-bar {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        border-top: 1px solid #d1d7dc;
+        padding: 16px 48px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 50;
+    }
+    .udemy-btn {
+        font-weight: 700;
+        padding: 10px 16px;
+        border-radius: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    .udemy-btn-outline {
+        border: 1px solid #1c1d1f;
+        color: #1c1d1f;
+        background: #fff;
+    }
+    .udemy-btn-outline:hover {
+        background: rgba(0,0,0,0.04);
+        color: #1c1d1f;
+    }
+    .udemy-btn-primary {
+        background: #2d2f31;
+        color: #fff;
+        border: 1px solid transparent;
+    }
+    .udemy-btn-primary:hover {
+        background: #1c1d1f;
+        color: #fff;
+    }
+    
+    /* Progress Bar */
+    .udemy-progress-container {
+        padding: 16px 48px 0;
+    }
+    .mini-progress-bar {
+        height: 4px;
+        background: #d1d7dc;
+        width: 100%;
+        margin-top: 8px;
+    }
+    .mini-progress-fill {
+        height: 100%;
+        background: #a435f0; /* Udemy purple */
+        width: 0%;
+        transition: width 0.3s;
+    }
+
+    @@media (max-width: 768px) {
+        .udemy-tabs-container, .udemy-progress-container, .udemy-nav-bar {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+    }
+
+    /* Q&A Styles */
+    .comment-item {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #2d2f31;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .comment-meta {
+        margin-bottom: 4px;
+    }
+    .comment-user {
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 8px;
+    }
+    .comment-date {
+        font-size: 0.75rem;
+        color: #6a6f73;
+    }
+    .comment-text {
+        font-size: 0.95rem;
+        color: #1c1d1f;
+        line-height: 1.5;
+    }
+</style>
+
+<!-- Video Player Area -->
+<div class="udemy-video-wrapper">
+    <div class="udemy-video-container">
+        @if (Model.Type == "Video" && !string.IsNullOrEmpty(Model.VideoUrl))
+        {
+            var lessonEmbed = GetEmbedUrl(Model.VideoUrl);
+            lessonEmbed += lessonEmbed.Contains("?") ? "&enablejsapi=1" : "?enablejsapi=1";
+            
+            <div class="plyr__video-embed" id="player">
+                <iframe src="@lessonEmbed" title="@Model.Title" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border:0;"></iframe>
+            </div>
+        }
+        else if (Model.Type == "Exam")
+        {
+            <div class="bg-dark text-white text-center py-5 d-flex flex-column align-items-center justify-content-center" style="min-height: 400px;">
+                <i class="bi bi-pencil-square" style="font-size: 4rem; opacity: 0.7;"></i>
+                <h3 class="mt-3">Bài kiểm tra</h3>
+                <p class="text-white-50">Hãy hoàn thành nội dung bên dưới</p>
+            </div>
+        }
+        else if (Model.Type == "Reading" || string.IsNullOrEmpty(Model.VideoUrl))
+        {
+            <div class="bg-white p-4 p-md-5 udemy-lesson-content-html" style="min-height: 400px; max-width: 800px; margin: 0 auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+                @if (!string.IsNullOrEmpty(Model.Content))
+                {
+                    @Html.Raw(Model.Content)
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-file-earmark-text mb-3 d-block" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p>Bài học này chưa có nội dung văn bản.</p>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="bg-dark text-white text-center py-5 d-flex flex-column align-items-center justify-content-center" style="min-height: 400px;">
+                <i class="bi bi-file-earmark-text" style="font-size: 4rem; opacity: 0.7;"></i>
+                <h3 class="mt-3">Bài học</h3>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="udemy-progress-container">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="fw-bold mb-0" style="font-size: 1.5rem; color: #1c1d1f;">@Model.Title</h2>
+        <div class="text-end">
+            <span class="fw-bold" style="color: #a435f0; font-size: 0.85rem;" id="lessonProgressText">0%</span>
+        </div>
+    </div>
+    <div class="mini-progress-bar">
+        <div class="mini-progress-fill" id="lessonProgressBar"></div>
+    </div>
+    <div class="text-muted mt-1 small" id="completionRequirementText">
+        Cần học 80% để mở bài tiếp theo
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="udemy-tabs-container">
+    <ul class="nav udemy-nav-tabs" id="lessonTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true"><i class="bi bi-search me-2 d-md-none"></i><span class="d-none d-md-inline">Tổng quan</span></button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="qa-tab" data-bs-toggle="tab" data-bs-target="#qa" type="button" role="tab" aria-controls="qa" aria-selected="false"><i class="bi bi-chat-left-text me-2 d-md-none"></i><span class="d-none d-md-inline">Hỏi đáp</span></button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false"><i class="bi bi-pencil me-2 d-md-none"></i><span class="d-none d-md-inline">Ghi chú</span></button>
+        </li>
+    </ul>
+
+    <div class="tab-content udemy-tab-content" id="lessonTabsContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">Về bài học này</h4>
+                @if (User.IsInRole("Expert") || User.IsInRole("Admin"))
+                {
+                    var courseInstructorId = course?.InstructorId;
+                    var currentUserIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    int.TryParse(currentUserIdClaim, out var currentUserId);
+
+                    if (courseInstructorId == currentUserId || User.IsInRole("Admin"))
+                    {
+                        <button class="btn btn-sm btn-outline-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editOverviewModal">
+                            <i class="bi bi-pencil-square me-1"></i> Chỉnh sửa
+                        </button>
+                    }
+                }
+            </div>
+            
+            <div id="lessonContentContainer">
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="udemy-lesson-content-html mb-4">
+                        @Html.Raw(Model.Description)
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Chưa có nội dung mô tả cho bài học này.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Q&A Tab -->
+        <div class="tab-pane fade" id="qa" role="tabpanel" aria-labelledby="qa-tab">
+            @Html.AntiForgeryToken()
+            <div id="qa-root" 
+                 data-lesson-id="@Model.Id" 
+                 data-user-id="@(User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0")" 
+                 data-is-expert="@(User.IsInRole("Expert") || User.IsInRole("Admin") ? "True" : "False")">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-dark" role="status"></div>
+                    <p class="mt-2 text-muted">Đang tải hỏi đáp...</p>
+                </div>
+            </div>
+            <script src="~/react/qa/qa-app.js?v=@DateTime.Now.Ticks"></script>
+        </div>
+
+        <!-- Notes Tab -->
+        <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+            <div class="notes-container">
+                <div class="note-editor mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="fw-bold mb-0">Tạo ghi chú mới</h5>
+                        <button id="captureTimestampBtn" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="bi bi-clock-history me-1"></i> Ghi chú tại <span id="currentTimeDisplay">00:00</span>
+                        </button>
+                    </div>
+                    <textarea id="noteContent" class="form-control mb-2" rows="3" placeholder="Nhập ghi chú của bạn tại đây..." style="border-radius: 8px; border: 1px solid #d1d7dc; resize: none;"></textarea>
+                    <div class="text-end">
+                        <button id="saveNoteBtn" class="udemy-btn udemy-btn-primary px-4 py-2" style="font-size: 0.9rem;">
+                            <i class="bi bi-check-lg me-1"></i> Lưu ghi chú
+                        </button>
+                    </div>
+                </div>
+
+                <div id="notesListTitle" class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Ghi chú của bạn</h5>
+                    <span class="badge bg-light text-dark border rounded-pill" id="noteCount">0 ghi chú</span>
+                </div>
+
+                <div id="notesList" class="notes-list">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-muted" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .note-card {
+        background: #fff;
+        border: 1px solid #d1d7dc;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        transition: box-shadow 0.2s;
+    }
+    .note-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .note-card-meta {
+        font-size: 0.75rem;
+        color: #6a6f73;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .note-timestamp {
+        background-color: #2d2f31;
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .note-card-content {
+        font-size: 0.95rem;
+        color: #1c1d1f;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+    .note-card-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 12px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    .note-card:hover .note-card-actions {
+        opacity: 1;
+    }
+    .note-btn-delete {
+        color: #dc3545;
+        border: none;
+        background: none;
+        font-size: 0.85rem;
+    }
+    .note-btn-delete:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<script>
+    (function () {
+        const lessonId = @Model.Id;
+        let selectedTimestamp = null;
+
+        // Initialize UI components
+        const noteContent = document.getElementById('noteContent');
+        const saveNoteBtn = document.getElementById('saveNoteBtn');
+        const captureTimestampBtn = document.getElementById('captureTimestampBtn');
+        const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+        const notesList = document.getElementById('notesList');
+        const noteCountBadge = document.getElementById('noteCount');
+
+        // Capture timestamp from Plymouth player if exists
+        function updateTimestamp() {
+            if (window.playerObj) {
+                const time = window.playerObj.currentTime;
+                selectedTimestamp = time;
+                const min = Math.floor(time / 60);
+                const sec = Math.floor(time % 60);
+                currentTimeDisplay.innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+            }
+        }
+
+        // Poll for time updates when the tab is active or every few seconds
+        setInterval(() => {
+            if (document.getElementById('notes').classList.contains('active')) {
+                updateTimestamp();
+            }
+        }, 1000);
+
+        captureTimestampBtn.addEventListener('click', () => {
+            updateTimestamp();
+            noteContent.focus();
+        });
+
+        // Load notes
+        function loadNotes() {
+            fetch(`/Course/GetNotes?lessonId=${lessonId}`)
+                .then(res => res.json())
+                .then(notes => {
+                    renderNotes(notes);
+                    noteCountBadge.innerText = `${notes.length} ghi chú`;
+                })
+                .catch(err => console.error("Error loading notes:", err));
+        }
+
+        function renderNotes(notes) {
+            if (notes.length === 0) {
+                notesList.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-journal-text text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Bạn chưa có ghi chú nào cho bài học này.</p>
+                    </div>`;
+                return;
+            }
+
+            notesList.innerHTML = notes.map(note => {
+                let timestampHtml = '';
+                if (note.videoTimestamp !== null) {
+                    const min = Math.floor(note.videoTimestamp / 60);
+                    const sec = Math.floor(note.videoTimestamp % 60);
+                    const timeStr = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+                    timestampHtml = `<span class="note-timestamp" onclick="seekTo(${note.videoTimestamp})">${timeStr}</span>`;
+                }
+
+                return `
+                    <div class="note-card" id="note-${note.id}">
+                        <div class="note-card-meta">
+                            ${timestampHtml}
+                            <span>${note.createdAt}</span>
+                        </div>
+                        <div class="note-card-content">${note.content}</div>
+                        <div class="note-card-actions">
+                            <button class="note-btn-delete" onclick="deleteNote(${note.id})">
+                                <i class="bi bi-trash me-1"></i> Xóa
+                            </button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        // Global functions for inline events
+        window.seekTo = (seconds) => {
+            if (window.playerObj) {
+                window.playerObj.currentTime = seconds;
+                window.playerObj.play();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
+        window.deleteNote = (noteId) => {
+            if (!confirm("Bạn có chắc chắn muốn xóa ghi chú này?")) return;
+
+            fetch(`/Course/DeleteNote?id=${noteId}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`note-${noteId}`).remove();
+                        // Update count
+                        const currentCount = parseInt(noteCountBadge.innerText);
+                        noteCountBadge.innerText = `${currentCount - 1} ghi chú`;
+                        if (currentCount - 1 === 0) renderNotes([]);
+                    }
+                });
+        };
+
+        // Save note
+        saveNoteBtn.addEventListener('click', () => {
+            const content = noteContent.value.trim();
+            if (!content) return;
+
+            saveNoteBtn.disabled = true;
+            saveNoteBtn.innerText = 'Đang lưu...';
+
+            fetch('/Course/SaveNote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    lessonId: lessonId,
+                    content: content,
+                    timestamp: selectedTimestamp || ''
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    noteContent.value = '';
+                    selectedTimestamp = null;
+                    loadNotes();
+                }
+            })
+            .finally(() => {
+                saveNoteBtn.disabled = false;
+                saveNoteBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Lưu ghi chú';
+            });
+        });
+
+        // Initial load when tab is clicked
+        document.getElementById('notes-tab').addEventListener('shown.bs.tab', function () {
+            loadNotes();
+        });
+    })();
+</script>
+
+<div class="udemy-nav-bar">
+    @if (prevId != null)
+    {
+        <a href="@Url.Action("Lesson", new { id = prevId })" class="udemy-btn udemy-btn-outline ajax-link">
+            <i class="bi bi-chevron-left"></i> Bài trước
+        </a>
+    }
+    else
+    {
+        <div></div>
+    }
+
+    @if (nextId != null)
+    {
+        <a href="@Url.Action("Lesson", new { id = nextId })" id="btnNextLesson" class="udemy-btn udemy-btn-primary ajax-link" style="pointer-events: none; opacity: 0.5;">
+            Bài tiếp theo <i class="bi bi-chevron-right"></i>
+        </a>
+    }
+</div>
+
+<!-- Edit Overview Modal -->
+<div class="modal fade" id="editOverviewModal" tabindex="-1" aria-labelledby="editOverviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="editOverviewForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="lessonId" value="@Model.Id" />
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="editOverviewModalLabel">Chỉnh sửa nội dung bài học</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nội dung (HTML)</label>
+                        <textarea class="form-control" name="content" id="editContentArea" rows="12" style="font-family: monospace;">@Model.Content</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4" id="saveOverviewBtn">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        if (window.lessonTrackerInterval) {
+            clearInterval(window.lessonTrackerInterval);
+        }
+
+        var lessonType = '@Model.Type';
+        var playerObj = null;
+        if (document.getElementById('player')) {
+            playerObj = new Plyr('#player', {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+                settings: ['captions', 'quality', 'speed', 'loop']
+            });
+        }
+
+        var lessonId = @Model.Id;
+        var durationMinutes = @Model.Duration;
+        var targetSeconds = durationMinutes * 60;
+        if (targetSeconds <= 0) targetSeconds = 10;
+
+        var activeSeconds = @(ViewBag.CurrentProgressSeconds ?? 0);
+        var isCompleted = @((ViewBag.IsCurrentLessonCompleted ?? false).ToString().ToLower());
+
+        function checkNextButtonUnlock(percent) {
+            if (percent >= 80) {
+                var nextBtn = document.getElementById('btnNextLesson');
+                var completeBtn = document.getElementById('completeCourseBtn');
+                var reqText = document.getElementById('completionRequirementText');
+                
+                if (nextBtn) {
+                    nextBtn.style.pointerEvents = 'auto';
+                    nextBtn.style.opacity = '1';
+                }
+                if (completeBtn) {
+                    completeBtn.style.pointerEvents = 'auto';
+                    completeBtn.style.opacity = '1';
+                }
+                if (reqText) {
+                    reqText.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-lg me-1"></i>Đã đủ điều kiện sang bài tiếp theo</span>';
+                }
+            }
+        }
+
+        function updateUI(timeSpent, completed) {
+            // Defensive update: only accept server value if it's more advanced 
+            // than our local tracking, or if we're JUST starting (0 vs 0).
+            if (timeSpent > activeSeconds) {
+                activeSeconds = timeSpent;
+            }
+            
+            // Completion can only transition from false to true via server or client
+            if (completed) isCompleted = true;
+            
+            var percent = Math.min((activeSeconds / targetSeconds) * 100, 100);
+            
+            var progressBar = document.getElementById('lessonProgressBar');
+            var progressText = document.getElementById('lessonProgressText');
+
+            if (progressBar) progressBar.style.width = percent + '%';
+            if (progressText) progressText.innerText = Math.round(percent) + '%';
+            
+            checkNextButtonUnlock(percent);
+
+            // Update the global text in the navbar (Total course progress)
+            // Note: We only update the percentage if we have a fresh value from server via sendProgress.
+            // Locally we only update the lesson-specific progress bar.
+            var lessonProgText = document.getElementById('lessonProgressText');
+            if (lessonProgText) lessonProgText.innerText = Math.round(percent) + '%';
+
+            // Immediate update for sidebar checkmark
+            if (percent >= 80) {
+                const chk = document.getElementById('chk-' + lessonId);
+                if (chk && !chk.classList.contains('completed')) {
+                    chk.classList.add('completed');
+                    chk.innerHTML = '<i class="bi bi-check-lg text-white"></i>';
+                }
+            }
+
+            if (isCompleted) {
+                if (progressBar) progressBar.style.backgroundColor = '#198754';
+                if (progressText) {
+                    progressText.style.color = '#198754';
+                    progressText.innerText = 'Hoàn thành';
+                }
+            }
+        }
+        
+        function sendProgress(time) {
+            fetch("/Course/UpdateProgress", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({ LessonId: lessonId, TimeSpent: time })
+            })
+            .then(function(res) { 
+                if (!res.ok) throw new Error("UpdateProgress HTTP status " + res.status);
+                return res.json(); 
+            })
+            .then(function(data) {
+                if (data && data.success) {
+                    updateUI(data.timeSpent, data.isCompleted);
+                    
+                    // Update global course progress
+                    if (data.totalCourseProgress !== undefined) {
+                        const globProg = document.getElementById('courseProgressTextGlob');
+                        if (globProg) globProg.innerText = data.totalCourseProgress + '%';
+                    }
+
+                    // Special case: if just completed, trigger some UI feedback
+                    if (data.isCompleted && !isCompleted) {
+                        const chk = document.getElementById('chk-' + lessonId);
+                        if (chk && !chk.classList.contains('completed')) {
+                            chk.classList.add('completed');
+                            chk.innerHTML = '<i class="bi bi-check-lg text-white"></i>';
+                        }
+                    }
+                }
+            })
+            .catch(function(err) { console.error("Error updating progress:", err); });
+        }
+
+        // Cleanup existing interval if any (for AJAX navigation)
+        if (window.lessonTrackerInterval) {
+            clearInterval(window.lessonTrackerInterval);
+        }
+
+        // Initial ping without adding time
+        sendProgress(0);
+
+        var trackingInterval = 5; // seconds
+        window.lessonTrackerInterval = setInterval(function() {
+            if (isCompleted) return;
+
+            var shouldIncrement = false;
+            
+            if (lessonType === 'Video') {
+                if (playerObj && playerObj.playing) {
+                    shouldIncrement = true;
+                }
+            } else {
+                // For Reading/Exam, increment if document is focused
+                if (!document.hidden) {
+                    shouldIncrement = true;
+                }
+            }
+
+            if (shouldIncrement) {
+                activeSeconds += trackingInterval;
+                // Local UI update for responsiveness
+                updateUI(activeSeconds, activeSeconds >= targetSeconds);
+                
+                // Every 15 seconds (or if completed), sync with server
+                if (activeSeconds % 15 === 0 || activeSeconds >= targetSeconds) {
+                    sendProgress(activeSeconds);
+                }
+            }
+        }, trackingInterval * 1000);
+
+        // Edit Overview Form Submit
+        var editForm = document.getElementById('editOverviewForm');
+        if (editForm) {
+            editForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var btn = document.getElementById('saveOverviewBtn');
+                btn.disabled = true;
+                btn.innerText = 'Đang lưu...';
+
+                var formData = new FormData(editForm);
+                fetch('/Course/UpdateLessonContent', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the content in the display areas
+                        var lessonType = '@Model.Type';
+                        var container = document.getElementById('lessonContentContainer');
+                        var topContainer = document.querySelector('.udemy-video-wrapper .udemy-lesson-content-html');
+
+                        if (lessonType === 'Reading' && topContainer) {
+                            topContainer.innerHTML = data.content;
+                        } else if (container) {
+                            if (lessonType !== 'Reading') {
+                                container.innerHTML = `<div class="udemy-lesson-content-html">${data.content}</div>`;
+                            }
+                        }
+
+                        // Close modal
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('editOverviewModal'));
+                        modal.hide();
+                        
+                        // Show success alert or toast if available, or just notify console
+                        console.log("Updated successfully");
+                    } else {
+                        alert("Lỗi khi cập nhật nội dung.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error:", err);
+                    alert("Đã xảy ra lỗi.");
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerText = 'Lưu thay đổi';
+                });
+            });
+        }
+    })();
+</script>
+
+<style>
+@@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>

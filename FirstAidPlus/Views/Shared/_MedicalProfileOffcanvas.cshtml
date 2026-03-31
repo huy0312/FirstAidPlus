@@ -1,0 +1,198 @@
+<div class="offcanvas offcanvas-end rounded-start-4 border-0 shadow-lg" tabindex="-1" id="medicalProfileOffcanvas" aria-labelledby="medicalProfileOffcanvasLabel" style="width: 500px;">
+    <div class="offcanvas-header bg-danger text-white p-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-white text-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <div>
+                <h6 class="offcanvas-title fw-bold" id="medicalProfileOffcanvasLabel">Hồ sơ y tế cá nhân</h6>
+                <small class="opacity-75" style="font-size: 0.75rem;">AI sẽ phân tích bệnh án và đề xuất khóa học phù hợp</small>
+            </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body bg-light p-0">
+        <!-- Tabs -->
+        <ul class="nav nav-pills nav-fill bg-white p-2 shadow-sm mb-3" id="medicalTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill fw-bold small" id="record-tab" data-bs-toggle="tab" data-bs-target="#record-content" type="button" role="tab" aria-controls="record-content" aria-selected="true">
+                    <i class="far fa-heart me-2"></i>Hồ sơ bệnh án
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill fw-bold small" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai-content" type="button" role="tab" aria-controls="ai-content" aria-selected="false" onclick="analyzeProfile()">
+                    <i class="fas fa-magic me-2"></i>Gợi ý AI
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="medicalTabsContent">
+            <!-- Records Tab -->
+            <div class="tab-pane fade show active px-3 pb-5" id="record-content" role="tabpanel">
+                <div class="alert alert-info border-0 shadow-sm d-flex gap-3 align-items-center">
+                    <i class="fas fa-info-circle fa-lg text-primary"></i>
+                    <div class="small">
+                        <strong>Thông tin y tế được mã hóa và bảo mật</strong><br>CSDL chỉ bạn và đội ngũ tư vấn y tế có quyền truy cập
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">Lịch sử bệnh án</h6>
+                    <span class="badge bg-secondary rounded-pill" id="recordCount">0</span>
+                </div>
+
+                <div id="medicalRecordsList" class="d-flex flex-column gap-3 mb-4">
+                    <!-- Records will be loaded here -->
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-notes-medical fa-2x mb-2 opacity-25"></i>
+                        <p class="small">Chưa có hồ sơ nào.</p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold py-3 text-center border-bottom-0">
+                        + Thêm bệnh án mới
+                    </div>
+                    <div class="card-body">
+                        <form id="addRecordForm" onsubmit="addMedicalRecord(event)">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Tên bệnh / Tình trạng</label>
+                                <input type="text" class="form-control" name="conditionName" placeholder="Ví dụ: Cao huyết áp" required>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-8">
+                                    <label class="form-label small fw-bold">Mô tả thêm (tùy chọn)</label>
+                                    <input type="text" class="form-control" name="description" placeholder="Đang điều trị thuốc...">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small fw-bold">Năm phát hiện</label>
+                                    <input type="number" class="form-control" name="yearDiagnosed" value="2024">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100 fw-bold rounded-pill">Lưu hồ sơ</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Suggestions Tab -->
+            <div class="tab-pane fade px-3" id="ai-content" role="tabpanel">
+                <div class="text-center py-5" id="aiLoading">
+                    <div class="spinner-border text-danger mb-3" role="status"></div>
+                    <p class="text-muted small">Đang phân tích hồ sơ sức khỏe của bạn...</p>
+                </div>
+                <div id="aiResult" class="d-none animate-fade-in">
+                    <!-- Suggestions will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMedicalRecords();
+    });
+
+    async function loadMedicalRecords() {
+        try {
+            const response = await fetch('/MedicalProfile/GetRecords');
+            if (!response.ok) return; // Maybe not logged in
+            const records = await response.json();
+            
+            const list = document.getElementById('medicalRecordsList');
+            document.getElementById('recordCount').innerText = records.length;
+            
+            if (records.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-notes-medical fa-2x mb-2 opacity-25"></i>
+                        <p class="small">Chưa có hồ sơ nào.</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = records.map(r => `
+                <div class="card border-0 shadow-sm position-relative">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold text-danger mb-0"><i class="fas fa-circle small me-2"></i>${r.conditionName}</h6>
+                            <span class="badge bg-light text-dark border">${r.yearDiagnosed}</span>
+                        </div>
+                        <p class="small text-muted mb-0">${r.description || 'Không có mô tả'}</p>
+                        <button class="btn btn-link text-muted position-absolute top-0 end-0 p-2 me-1 mt-1" onclick="deleteRecord(${r.id})" style="font-size: 0.8rem;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function addMedicalRecord(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            conditionName: form.conditionName.value,
+            description: form.description.value,
+            yearDiagnosed: parseInt(form.yearDiagnosed.value)
+        };
+
+        try {
+            const response = await fetch('/MedicalProfile/AddRecord', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (response.ok) {
+                form.reset();
+                loadMedicalRecords();
+                // Switch back to AI tab reset if needed
+            }
+        } catch (error) {
+            alert('Lỗi khi lưu hồ sơ');
+        }
+    }
+
+    async function deleteRecord(id) {
+        if(!confirm('Bạn có chắc muốn xóa?')) return;
+        try {
+             await fetch(`/MedicalProfile/DeleteRecord?id=${id}`, { method: 'POST' });
+             loadMedicalRecords();
+        } catch (e) {}
+    }
+
+    async function analyzeProfile() {
+        const resultDiv = document.getElementById('aiResult');
+        const loadingDiv = document.getElementById('aiLoading');
+        
+        loadingDiv.classList.remove('d-none');
+        resultDiv.classList.add('d-none');
+
+        try {
+            const response = await fetch('/MedicalProfile/AnalyzeProfile', { method: 'POST' });
+            const data = await response.json();
+            
+            resultDiv.innerHTML = `
+                <div class="bg-white p-4 rounded-4 shadow-sm">
+                    <h6 class="fw-bold text-danger mb-3"><i class="fas fa-star me-2"></i>Đề xuất dành riêng cho bạn</h6>
+                    <div class="content small text-dark" style="line-height: 1.6;">
+                        ${data.suggestion}
+                    </div>
+                    <div class="mt-4 text-center">
+                         <a href="/Course/Index" class="btn btn-danger btn-sm rounded-pill px-4">Xem tất cả khóa học</a>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            resultDiv.innerHTML = '<p class="text-center text-danger">Có lỗi khi phân tích. Vui lòng thử lại.</p>';
+        } finally {
+            loadingDiv.classList.add('d-none');
+            resultDiv.classList.remove('d-none');
+        }
+    }
+</script>

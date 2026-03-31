@@ -1,0 +1,58 @@
+<div class="offcanvas offcanvas-end rounded-start-4 border-0 shadow-lg" tabindex="-1" id="chatOffcanvas" aria-labelledby="chatOffcanvasLabel" style="width: 400px;">
+    <!-- Header -->
+    <div class="offcanvas-header bg-danger text-white p-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-white text-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div>
+                <h6 class="offcanvas-title fw-bold" id="chatOffcanvasLabel">FirstAid Supporter</h6>
+                <small class="opacity-75" style="font-size: 0.75rem;">Luôn sẵn sàng hỗ trợ 24/7</small>
+            </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <!-- Alert Bar -->
+    <div class="bg-light px-3 py-2 border-bottom d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-phone-volume text-danger"></i>
+            <small class="fw-bold text-dark">Khẩn cấp?</small>
+        </div>
+        <a href="tel:19001818" class="btn btn-danger btn-sm rounded-pill fw-bold px-3 py-1 text-white shadow-sm">
+            Gọi 1900 1818
+        </a>
+    </div>
+
+    <!-- Chat Body -->
+    <div class="offcanvas-body bg-white d-flex flex-column p-0">
+        <div class="flex-grow-1 p-3 overflow-auto" id="offcanvasChatBody">
+            <!-- Initial Message -->
+            <div class="d-flex mb-3 justify-content-start">
+                <div class="bg-light text-dark p-3 rounded-4 rounded-top-0 shadow-sm" style="max-width: 85%; font-size: 0.9rem;">
+                    <div>Xin chào! Tôi là trợ lý ảo của FirstAid+. Tôi có thể giúp gì cho bạn?</div>
+                    <div class="text-muted text-end mt-1" style="font-size: 0.65rem;">Bây giờ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-3 bg-white border-top">
+             <div class="input-group">
+                <input type="text" id="offcanvasChatInput" class="form-control border bg-light ps-3 rounded-start-pill" placeholder="Nhập câu hỏi..." onkeypress="handleOffcanvasEnter(event)">
+                <button class="btn btn-danger border-0 rounded-end-pill px-3" type="button" onclick="sendOffcanvasMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+             <div class="text-center mt-2">
+                <small class="text-muted" style="font-size: 0.65rem;">Powered by FirstAid+ AI</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom scrollbar for chat body */
+    #offcanvasChatBody::-webkit-scrollbar { width: 5px; }
+    #offcanvasChatBody::-webkit-scrollbar-thumb { background-color: #dee2e6; border-radius: 10px; }
+</style>

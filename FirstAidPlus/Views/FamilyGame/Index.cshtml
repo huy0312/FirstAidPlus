@@ -1,0 +1,180 @@
+@model IEnumerable<FirstAidPlus.Models.FamilyCourseCategory>
+@{
+    ViewData["Title"] = "Trò chơi gia đình";
+    var completedSituations = ViewBag.CompletedSituations as List<int> ?? new List<int>();
+    
+    // Calculate total situations and completed situations for the Progress Bar
+    int totalSituations = Model.SelectMany(c => c.Situations ?? new List<FirstAidPlus.Models.GameSituation>()).Count();
+    int completedCount = completedSituations.Count();
+    int progressPercentage = totalSituations > 0 ? (int)Math.Round((double)completedCount / totalSituations * 100) : 0;
+}
+
+<style>
+    .family-header {
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        padding: 50px 0;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .family-header h1 {
+        font-weight: 800;
+        color: #d71920; /* Brand Red */
+        margin-bottom: 15px;
+        letter-spacing: -0.5px;
+    }
+    .family-header h1 i {
+        margin-right: 12px;
+    }
+    .category-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 30px;
+        overflow: hidden;
+        background: white;
+    }
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(215, 25, 32, 0.1);
+    }
+    .category-header {
+        padding: 22px 25px;
+        color: white;
+        font-weight: 700;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .situation-item {
+        display: block;
+        padding: 20px 25px;
+        border-bottom: 1px solid #f4f6f8;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.2s ease;
+    }
+    .situation-item:last-child {
+        border-bottom: none;
+    }
+    .situation-item:hover {
+        background-color: #fffafa; /* Light Red Tint */
+    }
+    .situation-item:hover .situation-title {
+        color: #d71920;
+    }
+    .situation-title {
+        font-weight: 700;
+        margin-bottom: 6px;
+        font-size: 1.15rem;
+        transition: color 0.2s ease;
+    }
+    .situation-desc {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.5;
+    }
+    .status-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .completed {
+        color: #28a745;
+    }
+    .btn-brand {
+        background-color: #d71920;
+        color: white;
+        border: none;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .btn-brand:hover {
+        background-color: #b7151a;
+        color: white;
+        transform: scale(1.02);
+    }
+    .btn-brand:active {
+        transform: scale(0.98);
+    }
+</style>
+
+<div class="family-header">
+    <div class="container">
+         <span class="badge px-3 py-2 rounded-pill mb-3" style="background-color: #ffebee; color: #d71920; font-weight: 600; border: 1px solid #ffcdd2;">FirstAid+ Interactive</span>
+        <h1><i class="fas fa-gamepad"></i> Trò chơi gia đình</h1>
+        <p class="text-muted mb-4 fs-5">Trang bị kỹ năng sơ cứu và an toàn cho mọi thành viên trong nhà qua các tình huống thực tế</p>
+        
+        <!-- Progress Bar -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-8 col-lg-6">
+                <div class="bg-white p-4 rounded-4 shadow-sm border" style="border-color: #f1f3f5 !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-2 small fw-bold">
+                        <span class="text-dark"><i class="fas fa-trophy text-warning me-2"></i>Tiến độ học tập của bạn</span>
+                        <span style="color: #d71920;">@progressPercentage% (@completedCount/@totalSituations tình huống)</span>
+                    </div>
+                    <div class="progress" style="height: 12px; border-radius: 12px; background-color: #f1f3f5;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: @progressPercentage%; background-color: #d71920;" aria-valuenow="@progressPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row">
+        @foreach (var category in Model)
+        {
+            <div class="col-lg-6 mb-4">
+                <div class="category-card h-100 d-flex flex-column">
+                    <div class="category-header" style="background-color: @(string.IsNullOrEmpty(category.ColorHex) ? "#d71920" : category.ColorHex)">
+                        @if (!string.IsNullOrEmpty(category.IconUrl))
+                        {
+                            <i class="@category.IconUrl fa-lg"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-heartbeat fa-lg"></i>
+                        }
+                        @category.Title
+                    </div>
+                    <div class="flex-grow-1">
+                        @if (category.Situations != null && category.Situations.Any())
+                        {
+                            foreach (var situation in category.Situations)
+                            {
+                                bool isCompleted = completedSituations.Contains(situation.Id);
+                                <a asp-action="Play" asp-route-id="@situation.Id" class="situation-item d-flex align-items-center justify-content-between">
+                                    <div class="flex-grow-1 pe-4">
+                                        <div class="situation-title">@situation.Title</div>
+                                        <div class="situation-desc">@situation.CharacterContext</div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3 shrink-0">
+                                        <!-- Primary "Tham gia khóa học" Join Button -->
+                                        <span class="btn @(isCompleted ? "btn-outline-success" : "btn-brand shadow-sm") px-4 py-2 rounded-3 fw-bold" style="white-space: nowrap;">
+                                            @(isCompleted ? "Chơi lại" : "Tham gia khóa học") <i class="fas @(isCompleted ? "fa-redo" : "fa-arrow-right") ms-2"></i>
+                                        </span>
+                                        <div class="status-icon" style="width: 28px;">
+                                            @if (isCompleted)
+                                            {
+                                                <i class="fas fa-check-circle completed" style="font-size: 28px; background: white; border-radius: 50%;" title="Đã hoàn thành"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <div class="p-5 text-center text-muted">
+                                <i class="fas fa-clipboard-list fa-3x mb-3 text-light"></i>
+                                <p class="mb-0">Chưa có bài học nào trong chủ đề này.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

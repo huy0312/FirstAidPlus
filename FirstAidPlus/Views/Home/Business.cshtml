@@ -1,0 +1,242 @@
+@{
+    ViewData["Title"] = "Giải pháp doanh nghiệp";
+}
+
+<!-- Hero Section -->
+<div class="bg-danger text-white py-5">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Giải pháp đào tạo cho doanh nghiệp</h1>
+                <p class="lead mb-4 opacity-75">Nâng cao kỹ năng an toàn cho đội ngũ nhân viên với chương trình đào tạo chuyên nghiệp</p>
+                <button class="btn btn-light text-danger fw-bold px-4 py-3 rounded-0" onclick="scrollToConsult()">Nhận tư vấn miễn phí</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Benefits Section -->
+<div class="container py-5 my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold mb-2">Lợi ích cho doanh nghiệp</h2>
+        <p class="text-muted">Tại sao hơn 500+ doanh nghiệp tin tưởng chúng tôi</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Benefit 1 -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <div class="card-body border-start border-4 border-danger ps-4">
+                    <h5 class="fw-bold mb-3">Tiết kiệm chi phí</h5>
+                    <p class="small text-muted mb-0">Giảm 30-50% chi phí so với đào tạo truyền thống. Không cần di chuyển, thuê địa điểm.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Benefit 2 -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <div class="card-body border-start border-4 border-danger ps-4">
+                    <h5 class="fw-bold mb-3">Linh hoạt thời gian</h5>
+                    <p class="small text-muted mb-0">Nhân viên học mọi lúc, mọi nơi. Không gián đoạn công việc kinh doanh.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Benefit 3 -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <div class="card-body border-start border-4 border-danger ps-4">
+                    <h5 class="fw-bold mb-3">Quản lý tập trung</h5>
+                    <p class="small text-muted mb-0">Dashboard theo dõi tiến độ học tập của toàn bộ nhân viên.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Benefit 4 -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <div class="card-body border-start border-4 border-danger ps-4">
+                    <h5 class="fw-bold mb-3">Chứng chỉ quốc tế</h5>
+                    <p class="small text-muted mb-0">Đáp ứng yêu cầu pháp lý về an toàn lao động và ISO.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Benefit 5 -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <div class="card-body border-start border-4 border-danger ps-4">
+                    <h5 class="fw-bold mb-3">Hỗ trợ đoàn thể</h5>
+                    <p class="small text-muted mb-0">Giảm giá đặc biệt cho nhóm từ 10 người trở lên.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Benefit 6 -->
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <div class="card-body border-start border-4 border-danger ps-4">
+                    <h5 class="fw-bold mb-3">Tùy chỉnh nội dung</h5>
+                    <p class="small text-muted mb-0">Thiết kế khóa học riêng phù hợp với ngành nghề của bạn.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing Section -->
+<div class="bg-light py-5">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-2">Gói doanh nghiệp</h2>
+            <p class="text-muted">Truy cập không giới hạn vào toàn bộ kho khóa học sơ cấp cứu chuẩn quốc tế.</p>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 justify-content-center g-4 mt-4 pt-3">
+            <!-- Starter -->
+            <div class="col-lg-5">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 mt-5">
+                    <div class="card-body text-center">
+                        <h3 class="fw-bold mb-2">Starter</h3>
+                        <p class="text-muted small mb-3">Dành cho nhóm nhỏ 10-50 nhân viên</p>
+                        <h2 class="display-4 fw-bold text-danger mb-4">50,000đ<span class="fs-6 text-muted fw-normal">/người/tháng</span></h2>
+                        
+                        <a asp-controller="Subscription" asp-action="Index" class="btn btn-outline-danger w-100 py-3 fw-bold rounded-1 mb-4">Đăng ký ngay</a>
+
+                         <div class="text-start space-y-3 px-4">
+                             <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Tất cả khóa học cơ bản</div>
+                            <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Chứng chỉ quốc tế</div>
+                             <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Dashboard quản lý</div>
+                            <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Hỗ trợ email</div>
+                            <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Báo cáo tiến độ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Professional plan (tạm ẩn gói 159k) -->
+            @* Gói Professional 159k đã được ẩn theo yêu cầu. Nếu cần bật lại, bỏ comment khối dưới.
+            <div class="col-lg-5">
+                <div class="card h-100 border-danger border-2 shadow rounded-4 p-4 position-relative mt-5" style="overflow: visible !important; z-index: 10;">
+                    <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger px-4 py-2">Phổ biến nhất</span>
+                    <div class="card-body text-center">
+                        <h3 class="fw-bold mb-2">Professional</h3>
+                        <p class="text-muted small mb-3">Dành cho tổ chức 51-200 nhân viên</p>
+                        <h2 class="display-4 fw-bold text-danger mb-4">159,000đ<span class="fs-6 text-muted fw-normal">/người/tháng</span></h2>
+
+                        <a asp-controller="Subscription" asp-action="Index" class="btn btn-danger w-100 py-3 fw-bold rounded-1 mb-4">Đăng ký ngay</a>
+
+                        <div class="text-start space-y-3 px-4">
+                            <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Tất cả khóa Starter</div>
+                            <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Khóa học nâng cao</div>
+                            <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Tùy chỉnh nội dung</div>
+                            <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Người quản lý tài khoản</div>
+                            <div class="mb-3"><i class="fas fa-check text-success me-2"></i> Hỗ trợ ưu tiên</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            *@
+        </div>
+    </div>
+</div>
+
+<!-- Clients Section -->
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Khách hàng tiêu biểu</h2>
+    </div>
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+             <div class="card h-100 border p-4">
+                 <h5 class="fw-bold">Tập đoàn Vingroup</h5>
+                 <p class="small text-muted">Bất động sản • 500 nhân viên</p>
+                 <p class="fst-italic small mt-3">"Chương trình đào tạo giúp nhân viên chúng tôi nâng cao kỹ năng an toàn đáng kể."</p>
+             </div>
+        </div>
+         <div class="col-md-4">
+             <div class="card h-100 border p-4">
+                 <h5 class="fw-bold">FPT Software</h5>
+                 <p class="small text-muted">Công nghệ • 300 nhân viên</p>
+                 <p class="fst-italic small mt-3">"Linh hoạt, tiện lợi và chất lượng. Đội ngũ IT của chúng tôi rất hài lòng."</p>
+             </div>
+        </div>
+         <div class="col-md-4">
+             <div class="card h-100 border p-4">
+                 <h5 class="fw-bold">Bệnh viện Chợ Rẫy</h5>
+                 <p class="small text-muted">Y tế • 800 nhân viên</p>
+                 <p class="fst-italic small mt-3">"Nội dung chuyên sâu, phù hợp với yêu cầu của ngành y tế."</p>
+             </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Tool Section -->
+<div class="container my-5">
+    <div class="row border rounded-4 overflow-hidden shadow-sm">
+        <div class="col-lg-6 bg-primary bg-gradient p-5 text-white d-flex flex-column justify-content-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="mb-3">
+                 <i class="fas fa-brain fs-1 text-white opacity-75"></i>
+            </div>
+            <h2 class="fw-bold mb-3">Công cụ AI phân tích hồ sơ bệnh án</h2>
+            <p class="mb-4 text-white-50">Đặc biệt dành cho các cơ sở y tế: AI phân tích hồ sơ bệnh án và đề xuất nội dung đào tạo phù hợp cho nhân viên y tế</p>
+            <ul class="list-unstyled mb-4 text-white-50">
+                <li class="mb-2"><i class="fas fa-magic me-2"></i> Phân tích thông minh dựa trên triệu chứng</li>
+                <li class="mb-2"><i class="fas fa-lightbulb me-2"></i> Gợi ý đào tạo được cá nhân hóa</li>
+                <li class="mb-2"><i class="fas fa-chart-line me-2"></i> Nâng cao năng lực đội ngũ y tế</li>
+            </ul>
+        </div>
+        <div class="col-lg-6 p-5 bg-white d-flex flex-column justify-content-center">
+             <div class="d-flex align-items-center mb-4">
+                 <span class="bg-primary bg-opacity-10 text-primary rounded p-3 me-3"><i class="far fa-file-alt fs-4"></i></span>
+                 <div>
+                     <h6 class="fw-bold mb-0">Bước 1: Nhập hồ sơ bệnh án chi tiết</h6>
+                 </div>
+             </div>
+             <div class="d-flex align-items-center mb-4">
+                 <span class="bg-primary bg-opacity-10 text-primary rounded p-3 me-3"><i class="fas fa-cogs fs-4"></i></span>
+                 <div>
+                     <h6 class="fw-bold mb-0">Bước 2: AI phân tích chuyên khoa & độ phức tạp</h6>
+                 </div>
+             </div>
+             <div class="d-flex align-items-center mb-4">
+                 <span class="bg-success bg-opacity-10 text-success rounded p-3 me-3"><i class="fas fa-check-circle fs-4"></i></span>
+                 <div>
+                     <h6 class="fw-bold mb-0">Bước 3: Nhận gợi ý đào tạo phù hợp</h6>
+                 </div>
+             </div>
+             <button class="btn btn-primary w-100 fw-bold py-3" style="background: #667eea; border: none;">Truy cập công cụ AI <i class="fas fa-arrow-right ms-2"></i></button>
+             <p class="text-center small text-muted mt-3 mb-0"><i class="fas fa-lock me-1"></i> Dữ liệu được mã hóa & bảo mật theo chuẩn y tế</p>
+        </div>
+    </div>
+</div>
+
+<!-- Consultation Form -->
+<div class="bg-light py-5" id="consultForm">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-2">Nhận tư vấn miễn phí</h2>
+        <p class="text-muted mb-5">Để lại thông tin, chúng tôi sẽ liên hệ trong vòng 24h</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <form>
+                    <div class="mb-3">
+                        <input type="text" class="form-control form-control-lg" placeholder="Họ và tên">
+                    </div>
+                    <div class="mb-3">
+                        <input type="email" class="form-control form-control-lg" placeholder="Email công việc">
+                    </div>
+                    <div class="mb-3">
+                         <input type="text" class="form-control form-control-lg" placeholder="Tên công ty / Tổ chức">
+                    </div>
+                    <div class="mb-4">
+                        <input type="tel" class="form-control form-control-lg" placeholder="Số điện thoại">
+                    </div>
+                    <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold">Đăng ký tư vấn</button>
+                    <p class="text-muted small mt-3">Chúng tôi cam kết bảo mật thông tin của bạn.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function scrollToConsult() {
+        document.getElementById('consultForm').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>

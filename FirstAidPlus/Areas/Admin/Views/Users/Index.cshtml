@@ -1,0 +1,378 @@
+@model FirstAidPlus.Areas.Admin.ViewModels.UserListViewModel
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<div class="container-fluid p-0">
+        <h3 class="fw-bold text-slate-800">Quản lý người dùng</h3>
+        <p class="text-slate-500">Xem và quản lý tài khoản thành viên hệ thống</p>
+    </div>
+    <div class="ms-auto d-none d-lg-block">
+        <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="bi bi-plus-lg me-2"></i>Thêm người dùng mới
+        </button>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> Vui lòng kiểm tra lại thông tin.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden border-start border-primary border-4">
+        <div class="card-body p-4 bg-white">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Tìm kiếm</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-slate-400"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0 text-slate-700" placeholder="Tên, email người dùng..." value="@Model.SearchString" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Vai trò</label>
+                    <select name="roleId" class="form-select bg-light border-0 text-slate-700">
+                        <option value="">Tất cả vai trò</option>
+                        @foreach(var r in Model.Roles)
+                        {
+                            <option value="@r.Id" selected="@(Model.RoleFilter == r.Id)">@r.RoleName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4 fw-bold rounded-3 flex-grow-1">
+                        <i class="bi bi-funnel me-1"></i> Lọc
+                    </button>
+                    <a asp-action="Index" class="btn btn-light px-4 fw-bold rounded-3">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-custom align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4 py-3">Người dùng</th>
+                        <th class="py-3">Email</th>
+                        <th class="py-3">Vai trò</th>
+                        <th class="py-3">Ngày tạo</th>
+                        <th class="pe-4 py-3 text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    @if(Model.Users.Any())
+                    {
+                        @foreach(var user in Model.Users)
+                        {
+                            <tr>
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle-sm me-3" style="background-color: var(--admin-primary)">
+                                            @user.Username.Substring(0,1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-slate-800">@(user.FullName ?? user.Username)</div>
+                                            <div class="text-slate-500 small">@("@")@user.Username</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-slate-600">@user.Email</td>
+                                <td>
+                                    @if(user.Role?.RoleName == "Admin") {
+                                        <span class="badge-custom badge-danger">Admin</span>
+                                    } else if(user.Role?.RoleName == "Manager") {
+                                        <span class="badge-custom badge-warning">Manager</span>
+                                    } else if(user.Role?.RoleName == "Expert") {
+                                        <span class="badge-custom badge-success">Expert</span>
+                                    } else {
+                                        <span class="badge-custom badge-info">Học viên</span>
+                                    }
+                                </td>
+                                <td class="text-slate-500 small font-monospace">
+                                    <i class="bi bi-calendar3 me-1 opacity-75"></i>
+                                    @user.CreatedAt.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v text-muted"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg">
+                                            <li><a class="dropdown-item py-2" href="#"><i class="fas fa-edit me-2 text-primary"></i>Chỉnh sửa</a></li>
+                                            <li><a class="dropdown-item py-2" href="#"><i class="fas fa-lock me-2 text-warning"></i>Đổi mật khẩu</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form asp-action="Delete" asp-route-id="@user.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa người dùng này?');">
+                                                    <button type="submit" class="dropdown-item py-2 text-danger fw-medium">
+                                                        <i class="fas fa-trash-alt me-2"></i>Xóa tài khoản
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-user-slash fa-3x mb-3 opacity-50"></i>
+                                    <p class="mb-0">Không tìm thấy người dùng nào phù hợp.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        @if(Model.TotalPages > 1)
+        {
+            <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    Hiển thị trang <span class="fw-bold text-dark">@Model.CurrentPage</span> trên tổng <span class="fw-bold text-dark">@Model.TotalPages</span>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0 gap-1">
+                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-link rounded-circle border-0 d-flex align-items-center justify-content-center" 
+                               style="width: 32px; height: 32px;"
+                               asp-action="Index" 
+                               asp-route-page="@(Model.CurrentPage - 1)" 
+                               asp-route-search="@Model.SearchString" 
+                               asp-route-roleId="@Model.RoleFilter"
+                               aria-label="Previous">
+                                <i class="fas fa-chevron-left small"></i>
+                            </a>
+                        </li>
+
+                        @for(int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 2 && i <= Model.CurrentPage + 2))
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link rounded-circle border-0 d-flex align-items-center justify-content-center fw-bold @(i == Model.CurrentPage ? "shadow-sm" : "text-muted")" 
+                                       style="width: 32px; height: 32px;"
+                                       asp-action="Index" 
+                                       asp-route-page="@i" 
+                                       asp-route-search="@Model.SearchString" 
+                                       asp-route-roleId="@Model.RoleFilter">@i</a>
+                                </li>
+                            }
+                            else if (i == Model.CurrentPage - 3 || i == Model.CurrentPage + 3)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 text-muted bg-transparent">...</span>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                            <a class="page-link rounded-circle border-0 d-flex align-items-center justify-content-center" 
+                               style="width: 32px; height: 32px;"
+                               asp-action="Index" 
+                               asp-route-page="@(Model.CurrentPage + 1)" 
+                               asp-route-search="@Model.SearchString" 
+                               asp-route-roleId="@Model.RoleFilter"
+                               aria-label="Next">
+                                <i class="fas fa-chevron-right small"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold text-slate-800" id="createUserModalLabel">Thêm người dùng mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 pt-2">
+                <p class="text-slate-500 small mb-4">Tạo tài khoản mới cho thành viên hệ thống</p>
+                
+                <form asp-action="Create" method="post" id="createUserForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="NewUser.Username" class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Tên đăng nhập</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-slate-400"><i class="bi bi-person"></i></span>
+                                <input asp-for="NewUser.Username" class="form-control bg-light border-start-0 ps-0 text-slate-700" placeholder="vd: nva123" />
+                            </div>
+                            <span asp-validation-for="NewUser.Username" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewUser.Email" class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-slate-400"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="NewUser.Email" class="form-control bg-light border-start-0 ps-0 text-slate-700" placeholder="example@domain.com" />
+                            </div>
+                            <span asp-validation-for="NewUser.Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewUser.Password" class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-slate-400"><i class="bi bi-lock"></i></span>
+                                <input asp-for="NewUser.Password" type="password" class="form-control bg-light border-start-0 ps-0 text-slate-700" placeholder="••••••••" />
+                            </div>
+                            <span asp-validation-for="NewUser.Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewUser.ConfirmPassword" class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Xác nhận mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-slate-400"><i class="bi bi-lock-fill"></i></span>
+                                <input asp-for="NewUser.ConfirmPassword" type="password" class="form-control bg-light border-start-0 ps-0 text-slate-700" placeholder="••••••••" />
+                            </div>
+                            <span asp-validation-for="NewUser.ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewUser.FullName" class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Họ và tên</label>
+                            <input asp-for="NewUser.FullName" class="form-control bg-light border-0 text-slate-700" placeholder="Nguyễn Văn A" />
+                            <span asp-validation-for="NewUser.FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewUser.Phone" class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Số điện thoại</label>
+                            <input asp-for="NewUser.Phone" class="form-control bg-light border-0 text-slate-700" placeholder="0123456789" />
+                            <span asp-validation-for="NewUser.Phone" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NewUser.RoleId" class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Vai trò</label>
+                            <select asp-for="NewUser.RoleId" class="form-select bg-light border-0 text-slate-700">
+                                <option value="">Chọn vai trò</option>
+                                @foreach(var role in Model.Roles)
+                                {
+                                    <option value="@role.Id">@role.RoleName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="NewUser.RoleId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="NewUser.Address" class="form-label small text-slate-500 fw-bold text-uppercase ls-1">Địa chỉ</label>
+                            <input asp-for="NewUser.Address" class="form-control bg-light border-0 text-slate-700" placeholder="Địa chỉ nơi ở..." />
+                            <span asp-validation-for="NewUser.Address" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-light px-4 fw-bold rounded-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold rounded-3 shadow-sm">
+                            <i class="bi bi-check-lg me-2"></i>Tạo người dùng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <text>
+                var myModal = new bootstrap.Modal(document.getElementById('createUserModal'));
+                myModal.show();
+                </text>
+            }
+        });
+    </script>
+}
+
+<style>
+    .table-custom thead th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .table-custom tbody td {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+    .avatar-circle-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .badge-custom {
+        padding: 0.35em 0.8em;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+    .badge-danger { background-color: #fef2f2; color: #dc2626; }
+    .badge-warning { background-color: #fffbeb; color: #d97706; }
+    .badge-success { background-color: #ecfdf5; color: #059669; }
+    .badge-info { background-color: #eff6ff; color: #2563eb; }
+    
+    .text-slate-800 { color: #1e293b; }
+    .text-slate-600 { color: #475569; }
+    .text-slate-500 { color: #64748b; }
+    
+    .pagination .page-link {
+        color: #64748b;
+        border: none;
+        background-color: #f1f5f9;
+        margin: 0 2px;
+        font-weight: 600;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--admin-primary);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+    }
+    .pagination .page-item.disabled .page-link {
+        opacity: 0.5;
+        background-color: #f8fafc;
+    }
+</style>

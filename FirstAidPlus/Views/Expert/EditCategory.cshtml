@@ -1,0 +1,237 @@
+@model FirstAidPlus.Models.FamilyCourseCategory
+@{
+    ViewData["Title"] = "Quản lý Hạng mục Trò chơi";
+    Layout = "~/Views/Shared/_ExpertLayout.cshtml";
+}
+
+<div class="container-fluid p-0">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold text-slate-800">Quản lý: @Model.Title</h3>
+            <p class="text-slate-500 mb-0">Thêm, sửa, xóa các tình huống và tùy chọn cho danh mục này</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="ManageGame" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-1"></i> Trở về
+            </a>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addSituationModal">
+                <i class="fas fa-plus me-1"></i> Thêm Tình huống
+            </button>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!Model.Situations.Any())
+    {
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm border-0 mt-4">
+            <i class="fas fa-clipboard-list fa-4x text-muted opacity-25 mb-3"></i>
+            <h5 class="fw-bold">Chưa có tình huống</h5>
+            <p class="text-muted">Danh mục này hiện chưa có nội dung trò chơi nào.</p>
+            <button class="btn btn-primary mt-2 rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addSituationModal">
+                <i class="fas fa-plus me-1"></i> Bắt đầu thêm
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="accordion accordion-flush bg-transparent mt-4" id="situationsAccordion">
+            @for (int i = 0; i < Model.Situations.Count; i++)
+            {
+                var sit = Model.Situations.ToList()[i];
+                <div class="accordion-item border-0 mb-4 rounded-4 shadow-sm overflow-hidden">
+                    <h2 class="accordion-header bg-white" id="heading@(sit.Id)">
+                        <button class="accordion-button @(i != 0 ? "collapsed" : "") bg-white fw-bold text-dark fs-5" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(sit.Id)" aria-expanded="true" aria-controls="collapse@(sit.Id)">
+                            <div class="d-flex w-100 justify-content-between align-items-center me-3">
+                                <span><span class="text-primary me-2">#( @(i + 1) )</span> @sit.Title</span>
+                                <span class="badge bg-light text-dark border">@sit.Options.Count Lựa chọn</span>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse@(sit.Id)" class="accordion-collapse collapse @(i == 0 ? "show" : "")" aria-labelledby="heading@(sit.Id)" data-bs-parent="#situationsAccordion">
+                        <div class="accordion-body bg-light">
+                            <!-- Situation Details -->
+                            <div class="card border-0 mb-3 shadow-sm rounded-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-info-circle me-2"></i>Chi tiết tình huống</h6>
+                                        <form asp-action="DeleteSituation" method="post" onclick="return confirm('Bạn có chắc chắn muốn xóa tình huống này không? Tất cả các lựa chọn bên trong cũng sẽ bị xóa.')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@sit.Id" />
+                                            <input type="hidden" name="categoryId" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa tình huống">
+                                                <i class="fas fa-trash-alt"></i> Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <p class="mb-1 text-muted small fw-bold">Bối cảnh nhân vật:</p>
+                                            <p class="mb-0 bg-light p-2 rounded">@(string.IsNullOrEmpty(sit.CharacterContext) ? "—" : sit.CharacterContext)</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1 text-muted small fw-bold">Mô tả tình huống:</p>
+                                            <p class="mb-0 bg-light p-2 rounded">@(string.IsNullOrEmpty(sit.SituationDescription) ? "—" : sit.SituationDescription)</p>
+                                        </div>
+                                        <div class="col-12 mt-3">
+                                            <p class="mb-1 text-muted small fw-bold">Câu hỏi:</p>
+                                            <h5 class="mb-0 fw-bold">@sit.Question</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Options List -->
+                            <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                                <h6 class="fw-bold mb-0"><i class="fas fa-list-ul me-2"></i>Danh sách Lựa chọn (@sit.Options.Count)</h6>
+                                <button class="btn btn-sm btn-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addOptionModal@(sit.Id)">
+                                    <i class="fas fa-plus me-1"></i> Lựa chọn mới
+                                </button>
+                            </div>
+
+                            @if (!sit.Options.Any())
+                            {
+                                <div class="alert alert-secondary text-center mb-0">Chưa có lựa chọn nào cho tình huống này.</div>
+                            }
+                            else
+                            {
+                                <div class="row g-3">
+                                    @foreach (var opt in sit.Options)
+                                    {
+                                        <div class="col-md-6">
+                                            <div class="card border-0 h-100 @(opt.IsCorrect ? "border-start border-4 border-success" : "border-start border-4 border-danger") shadow-sm">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <span class="badge @(opt.IsCorrect ? "bg-success" : "bg-danger") px-2 py-1">
+                                                            <i class="fas @(opt.IsCorrect ? "fa-check" : "fa-times") me-1"></i> @(opt.IsCorrect ? "Đúng" : "Sai")
+                                                        </span>
+                                                        <div class="d-flex gap-2 align-items-center">
+                                                            <span class="badge bg-info text-dark">@opt.Points điểm</span>
+                                                            <form asp-action="DeleteOption" method="post" onclick="return confirm('Bạn có chắc chắn muốn xóa lựa chọn này?')">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@opt.Id" />
+                                                                <input type="hidden" name="categoryId" value="@Model.Id" />
+                                                                <button type="submit" class="btn btn-sm text-danger p-0" title="Xóa" style="background:none; border:none;">
+                                                                    <i class="fas fa-trash-alt"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <p class="fw-bold mb-2">@opt.OptionText</p>
+                                                    @if (!string.IsNullOrEmpty(opt.Explanation))
+                                                    {
+                                                        <p class="small text-muted mb-0 border-top pt-2"><i class="fas fa-comment-dots opacity-50 me-1"></i> @opt.Explanation</p>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modals per situation -->
+                <div class="modal fade" id="addOptionModal@(sit.Id)" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content border-0 shadow">
+                            <form asp-action="AddOption" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="categoryId" value="@Model.Id" />
+                                <input type="hidden" name="situationId" value="@sit.Id" />
+                                <div class="modal-header bg-light border-0">
+                                    <h6 class="modal-title fw-bold">Thêm Lựa chọn Mới</h6>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-muted">Nội dung lựa chọn *</label>
+                                        <textarea name="optionText" class="form-control" rows="2" required placeholder="Nhập hành động/lựa chọn"></textarea>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold text-muted">Loại đáp án</label>
+                                            <select name="isCorrect" class="form-select">
+                                                <option value="true">Đúng (Chính xác)</option>
+                                                <option value="false" selected>Sai (Không chính xác)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold text-muted">Điểm thưởng/phạt</label>
+                                            <input type="number" name="points" class="form-control" value="0" />
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-muted">Giải thích (nếu có)</label>
+                                        <textarea name="explanation" class="form-control" rows="3" placeholder="Vì sao lựa chọn này đúng/sai..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                                    <button type="submit" class="btn btn-dark">Lưu Lựa chọn</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Add Situation Modal -->
+<div class="modal fade" id="addSituationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <form asp-action="AddSituation" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="categoryId" value="@Model.Id" />
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Thêm Tình huống Mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Tiêu đề tình huống *</label>
+                        <input type="text" name="title" class="form-control form-control-lg" required placeholder="Ví dụ: Cấp cứu nghẹn dị vật" />
+                    </div>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Bối cảnh nhân vật</label>
+                            <textarea name="characterContext" class="form-control" rows="3" placeholder="Ví dụ: Bạn đang ăn tối cùng gia đình..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mô tả tình huống</label>
+                            <textarea name="situationDescription" class="form-control" rows="3" placeholder="Ví dụ: Đứa trẻ bỗng nhiên ôm cổ, mặt đỏ bừng và không thể khóc hay ho..."></textarea>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">Câu hỏi tương tác *</label>
+                        <textarea name="question" class="form-control border-primary" rows="2" required placeholder="Hỏi người chơi: Bạn sẽ làm gì đầu tiên?"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-1"></i> Lưu Tình huống</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-slate-800 { color: #1e293b; }
+    .text-slate-500 { color: #64748b; }
+    .accordion-button:not(.collapsed) {
+        background-color: #f8faff;
+        color: #4e73df;
+        box-shadow: inset 0 -1px 0 rgba(0,0,0,.125);
+    }
+</style>

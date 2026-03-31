@@ -1,0 +1,59 @@
+@model FirstAidPlus.Models.Course
+@{
+    ViewData["Title"] = "Tạo khóa học mới";
+    Layout = "~/Views/Shared/_ExpertLayout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold text-center mb-4">Tạo khóa học mới</h2>
+                    
+                    <form asp-action="CreateCourse" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-bold">Tên khóa học</label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="VD: Sơ cứu tại nhà" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">Mô tả ngắn</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        
+
+                        <div class="mb-3">
+                            <label for="imageFile" class="form-label fw-bold">Hình ảnh khóa học</label>
+                            <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                            <input type="hidden" asp-for="ImageUrl" /> <!-- Kept for model binding if needed, but updated by controller -->
+                        </div>
+                         <div class="mb-3">
+                            <label asp-for="VideoUrl" class="form-label fw-bold">URL Video giới thiệu (Embed)</label>
+                            <input asp-for="VideoUrl" class="form-control" placeholder="https://www.youtube.com/embed/..." />
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input class="form-check-input" type="checkbox" asp-for="IsPopular">
+                            <label class="form-check-label" asp-for="IsPopular">
+                                Đánh dấu là khóa học nổi bật
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">Tạo khóa học</button>
+                            <a asp-action="MyCourses" class="btn btn-outline-secondary">Hủy bỏ</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

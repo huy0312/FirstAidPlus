@@ -1,0 +1,116 @@
+@model IEnumerable<FirstAidPlus.Models.Message>
+@{
+    var partner = ViewBag.Partner as FirstAidPlus.Models.User;
+    ViewData["Title"] = "Trò chuyện với " + partner.FullName;
+    Layout = "~/Views/Shared/_ExpertLayout.cshtml";
+    var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value);
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm border-0" style="height: 70vh;">
+                <div class="card-header bg-white border-bottom py-3 d-flex align-items-center">
+                    <a asp-action="Chat" class="text-decoration-none text-secondary me-3"><i class="bi bi-arrow-left fs-4"></i></a>
+                    <img src="@(partner.AvatarUrl ?? "https://placehold.co/40x40")" class="rounded-circle me-2" width="40" height="40">
+                    <h5 class="mb-0 fw-bold">@partner.FullName</h5>
+                </div>
+                
+                <div class="card-body overflow-auto d-flex flex-column" id="chatBox">
+                    @foreach(var msg in Model)
+                    {
+                        var isMe = msg.SenderId == currentUserId;
+                        <div class="d-flex mb-3 @(isMe ? "justify-content-end" : "justify-content-start")">
+                            <div class="@(isMe ? "bg-primary text-white" : "bg-light text-dark") px-3 py-2 rounded-3" style="max-width: 75%;">
+                                <div>@msg.Content</div>
+                                <div class="small text-end opacity-75" style="font-size: 0.7rem;">@msg.CreatedAt.ToLocalTime().ToString("HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-footer bg-white border-top p-3">
+                    <form asp-action="SendMessage" method="post" class="d-flex gap-2" id="chatForm">
+                        <input type="hidden" name="receiverId" value="@partner.Id" />
+                        <input type="text" name="content" class="form-control" placeholder="Nhập tin nhắn..." required autofocus autocomplete="off" />
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+<script>
+    const currentUserId = @currentUserId;
+    const partnerId = @partner.Id;
+    const chatBox = document.getElementById('chatBox');
+
+    function scrollToBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Initialize SignalR
+    const chatConnection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .withAutomaticReconnect()
+        .build();
+
+    chatConnection.on("ReceiveChatMessage", function (data) {
+        console.log("Message received:", data);
+        const isMe = data.senderId === currentUserId;
+        
+        const msgHtml = `
+            <div class="d-flex mb-3 ${isMe ? 'justify-content-end' : 'justify-content-start'}">
+                <div class="${isMe ? 'bg-primary text-white' : 'bg-light text-dark'} px-3 py-2 rounded-3" style="max-width: 75%;">
+                    <div>${data.content}</div>
+                    <div class="small text-end opacity-75" style="font-size: 0.7rem;">${data.createdAt}</div>
+                </div>
+            </div>
+        `;
+        
+        chatBox.insertAdjacentHTML('beforeend', msgHtml);
+        scrollToBottom();
+    });
+
+    chatConnection.start().then(function () {
+        console.log("Joined real-time chat with user:", partnerId);
+        chatConnection.invoke("JoinChat", partnerId).catch(function (err) {
+            return console.error("Error joining chat group:", err.toString());
+        });
+    }).catch(function (err) {
+        return console.error("SignalR Connection Error:", err.toString());
+    });
+
+    // Handle form submission via AJAX
+    const chatForm = document.getElementById('chatForm');
+    chatForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        
+        const input = this.querySelector('input[name="content"]');
+        const content = input.value.trim();
+        if (!content) return;
+
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                input.value = '';
+                input.focus();
+            }
+        })
+        .catch(error => console.error('Error sending message:', error));
+    });
+
+    // Initial scroll
+    scrollToBottom();
+</script>

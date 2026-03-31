@@ -1,0 +1,30 @@
+@model FirstAidPlus.Models.Course
+
+@{
+    ViewData["Title"] = "Thanh toán thành công";
+}
+
+<div class="container my-5 text-center">
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+        <div class="card-body p-5">
+            <div class="mb-4 text-success">
+                <i class="bi bi-check-circle-fill" style="font-size: 5rem;"></i>
+            </div>
+            <h2 class="fw-bold mb-3">Thanh toán thành công!</h2>
+            <p class="lead text-muted mb-4">
+                Cảm ơn bạn đã đăng ký khóa học <strong>@Model.Title</strong>. <br />
+                Hóa đơn điện tử đã được gửi đến email của bạn. <br />
+                Bạn có thể bắt đầu học ngay bây giờ.
+            </p>
+
+            <div class="d-grid gap-2 col-md-8 mx-auto">
+                <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-danger btn-lg fw-bold">
+                    <i class="bi bi-play-circle me-2"></i>Bắt đầu học ngay
+                </a>
+                <a asp-controller="Enrollment" asp-action="MyCourses" class="btn btn-outline-secondary">
+                    Xem khóa học của tôi
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,135 @@
+@model FirstAidPlus.Models.Transaction
+@using System.Globalization
+@{
+    ViewData["Title"] = "Chi tiết giao dịch";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a asp-action="Index" class="btn btn-link text-slate-500 p-0 text-decoration-none mb-2">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+        </a>
+        <h3 class="fw-bold text-slate-800">Chi tiết giao dịch #@Model.Id</h3>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Info -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-white border-bottom py-3 px-4">
+                    <h6 class="m-0 fw-bold text-slate-800">Thông tin gói đăng ký</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="extra-small text-uppercase fw-bold text-slate-400 ls-1 d-block mb-1">Gói cước</label>
+                            <div class="h5 fw-bold text-slate-800">@(Model.Plan?.Name ?? "N/A")</div>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <label class="extra-small text-uppercase fw-bold text-slate-400 ls-1 d-block mb-1">Số tiền</label>
+                            <div class="h5 fw-bold text-indigo-600">@Model.Amount.ToString("C0", CultureInfo.GetCultureInfo("vi-VN"))</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="extra-small text-uppercase fw-bold text-slate-400 ls-1 d-block mb-1">Mô tả đơn hàng</label>
+                            <div class="text-slate-600">@Model.OrderDescription</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-bottom py-3 px-4">
+                    <h6 class="m-0 fw-bold text-slate-800">Chi tiết thanh toán</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="extra-small text-uppercase fw-bold text-slate-400 ls-1 d-block mb-1">Phương thức</label>
+                                <div class="fw-bold text-slate-700"><i class="bi bi-credit-card-2-front me-2"></i>@Model.PaymentMethod</div>
+                            </div>
+                            <div>
+                                <label class="extra-small text-uppercase fw-bold text-slate-400 ls-1 d-block mb-1">Trạng thái</label>
+                                @if(Model.Status == "Success") {
+                                    <span class="badge bg-success-soft text-success rounded-pill px-3 py-1 extra-small fw-bold">Thành công</span>
+                                } else if(Model.Status == "Pending") {
+                                    <span class="badge bg-warning-soft text-warning rounded-pill px-3 py-1 extra-small fw-bold">Chờ xử lý</span>
+                                } else {
+                                    <span class="badge bg-danger-soft text-danger rounded-pill px-3 py-1 extra-small fw-bold">Thất bại</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="extra-small text-uppercase fw-bold text-slate-400 ls-1 d-block mb-1">Mã tham chiếu (TxnRef)</label>
+                                <div class="font-monospace p-2 bg-light rounded small border">@(Model.VnPayTxnRef ?? Model.MomoOrderId ?? "N/A")</div>
+                            </div>
+                            @if(!string.IsNullOrEmpty(Model.VnPayTransactionNo)) {
+                                <div>
+                                    <label class="extra-small text-uppercase fw-bold text-slate-400 ls-1 d-block mb-1">Mã giao dịch VnPay</label>
+                                    <div class="font-monospace p-2 bg-light rounded small border">@Model.VnPayTransactionNo</div>
+                                </div>
+                            }
+                            @if(!string.IsNullOrEmpty(Model.MomoTransId)) {
+                                <div>
+                                    <label class="extra-small text-uppercase fw-bold text-slate-400 ls-1 d-block mb-1">Mã giao dịch Momo</label>
+                                    <div class="font-monospace p-2 bg-light rounded small border">@Model.MomoTransId</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-white border-bottom py-3 px-4">
+                    <h6 class="m-0 fw-bold text-slate-800">Khách hàng</h6>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <div class="avatar-circle-lg mx-auto mb-3" style="background-color: var(--admin-primary); width: 64px; height: 64px; font-size: 1.5rem; color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                        @((Model.User?.Username ?? "U").Substring(0,1).ToUpper())
+                    </div>
+                    <h5 class="fw-bold text-slate-800 mb-1">@(Model.User?.FullName ?? "N/A")</h5>
+                    <p class="text-slate-500 extra-small mb-3">@(Model.User?.Email)</p>
+                    <hr class="border-slate-100">
+                    <div class="text-start">
+                        <div class="mb-2 d-flex justify-content-between">
+                            <span class="extra-small text-slate-400 fw-bold">Tên đăng nhập:</span>
+                            <span class="small fw-bold">@Model.User?.Username</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="extra-small text-slate-400 fw-bold">Ngày đăng ký:</span>
+                            <span class="small">@Model.User?.CreatedAt.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-indigo-100 bg-indigo-50 border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-calendar-event text-indigo-600 fs-4 me-2"></i>
+                        <h6 class="m-0 fw-bold text-slate-800">Thời gian khởi tạo</h6>
+                    </div>
+                    <div class="h5 fw-bold text-slate-800 mb-0">@Model.CreatedAt.ToString("dd/MM/yyyy")</div>
+                    <div class="text-indigo-600 fw-bold">@Model.CreatedAt.ToString("HH:mm:ss")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-success-soft { background-color: #ecfdf5; }
+    .bg-warning-soft { background-color: #fffbeb; }
+    .bg-danger-soft { background-color: #fef2f2; }
+    .bg-indigo-50 { background-color: #eef2ff; }
+    .text-indigo-600 { color: #4f46e5; }
+    .ls-1 { letter-spacing: 0.05rem; }
+    .font-monospace { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+    .border-slate-100 { border-color: #f1f5f9 !important; }
+</style>

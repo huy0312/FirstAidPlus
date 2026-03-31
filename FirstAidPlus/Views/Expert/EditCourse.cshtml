@@ -1,0 +1,623 @@
+@model FirstAidPlus.Models.Course
+@{
+    ViewData["Title"] = "Chỉnh sửa khóa học: " + Model.Title;
+    Layout = "~/Views/Shared/_ExpertLayout.cshtml";
+}
+
+<style>
+    .cursor-move { cursor: move; }
+    .sortable-ghost { opacity: 0.4; background-color: #f0f4ff !important; border: 2px dashed #4e73df !important; }
+    /* Summernote customization */
+    .note-editor.note-frame { border-radius: 8px; border: 1px solid #dee2e6; overflow: hidden; }
+    .note-toolbar { background-color: #f8f9fa !important; border-bottom: 1px solid #dee2e6 !important; }
+</style>
+<!-- Summernote CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+
+@{
+    ViewData["Title"] = "Chỉnh sửa khóa học: " + Model.Title;
+}
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a asp-action="MyCourses">Khóa học của tôi</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold">Quan lý nội dung khóa học</h2>
+        </div>
+        <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.Id" target="_blank" class="btn btn-outline-primary">
+            <i class="bi bi-eye me-2"></i>Xem trang hiển thị
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="liveToast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage">
+                    Hello, world! This is a toast message.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group list-group-flush shadow-sm rounded-3 overflow-hidden" id="courseTabs" role="tablist">
+                <a class="list-group-item list-group-item-action active py-3" id="basic-tab" data-bs-toggle="list" href="#basic" role="tab" onclick="saveTab('basic')">
+                    <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+                </a>
+                <a class="list-group-item list-group-item-action py-3" id="objectives-tab" data-bs-toggle="list" href="#objectives" role="tab" onclick="saveTab('objectives')">
+                    <i class="bi bi-check2-circle me-2"></i>Mục tiêu khóa học
+                </a>
+                <a class="list-group-item list-group-item-action py-3" id="syllabus-tab" data-bs-toggle="list" href="#syllabus" role="tab" onclick="saveTab('syllabus')">
+                    <i class="bi bi-journal-text me-2"></i>Chương trình học
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="tab-content" id="nav-tabContent">
+                
+                <!-- Basic Info Tab -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4">Thông tin cơ bản</h4>
+                            
+                            <form asp-action="EditCourse" method="post" enctype="multipart/form-data">
+                                <input type="hidden" asp-for="Id" />
+                                <div class="mb-3">
+                                    <label asp-for="Title" class="form-label fw-bold">Tên khóa học</label>
+                                    <input asp-for="Title" class="form-control" />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label fw-bold">Mô tả ngắn</label>
+                                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Tổng thời lượng bài học (Tự động)</label>
+                                        <div class="form-control bg-light">@Model.GetFormattedDuration()</div>
+                                        <small class="text-muted">Được tính từ tổng thời gian của các bài học trong chương trình.</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="CertificateName" class="form-label fw-bold">Tên chứng chỉ</label>
+                                        <input asp-for="CertificateName" class="form-control" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="imageFile" class="form-label fw-bold">Hình ảnh khóa học (Để trống nếu không đổi)</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                                        {
+                                            <img src="@Model.ImageUrl" alt="Current Image" class="rounded border" style="width: 60px; height: 60px; object-fit: cover;">
+                                        }
+                                        <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                                        <input type="hidden" asp-for="ImageUrl" />
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="VideoUrl" class="form-label fw-bold">URL Video giới thiệu (Embed)</label>
+                                    <input asp-for="VideoUrl" class="form-control" />
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check border rounded p-3">
+                                            <input class="form-check-input ms-0 me-2" type="checkbox" asp-for="IsActive">
+                                            <label class="form-check-label fw-bold" asp-for="IsActive">
+                                                Hiển thị khóa học
+                                            </label>
+                                            <div class="small text-muted ms-4">Cho phép học viên tìm thấy và đăng ký khóa học này.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check border rounded p-3">
+                                            <input class="form-check-input ms-0 me-2" type="checkbox" asp-for="IsPopular">
+                                            <label class="form-check-label fw-bold" asp-for="IsPopular">
+                                                Khóa học nổi bật
+                                            </label>
+                                            <div class="small text-muted ms-4">Hiển thị huy hiệu "Phổ biến" trân danh sách khóa học.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary px-4 fw-bold">Lưu thay đổi</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Objectives Tab -->
+                <div class="tab-pane fade" id="objectives" role="tabpanel">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4">Mục tiêu khóa học</h4>
+                            <p class="text-muted">Học viên sẽ đạt được gì sau khóa học này?</p>
+
+                            <ul class="list-group mb-4">
+                                @if (Model.Objectives != null && Model.Objectives.Any())
+                                {
+                                    @foreach (var item in Model.Objectives)
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><i class="bi bi-check-lg text-success me-2"></i>@item.Content</span>
+                                            <form asp-action="DeleteObjective" method="post" class="d-inline ajax-form">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="confirmDelete(this, 'Xóa mục tiêu này?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </li>
+                                    }
+                                }
+                                else
+                                {
+                                    <li class="list-group-item text-center text-muted py-3">Chưa có mục tiêu nào được thêm.</li>
+                                }
+                            </ul>
+
+                            <form asp-action="AddObjective" method="post" class="card bg-light border-0">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3">Thêm mục tiêu mới</h6>
+                                    <input type="hidden" name="courseId" value="@Model.Id" />
+                                    <div class="input-group">
+                                        <input type="text" name="content" class="form-control" placeholder="VD: Hiểu về kỹ thuật CPR..." required>
+                                        <button class="btn btn-success" type="submit">Thêm</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Syllabus Tab -->
+                <div class="tab-pane fade" id="syllabus" role="tabpanel">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h4 class="fw-bold mb-4">Chương trình học & Bài giảng</h4>
+                            
+                             <div class="accordion mb-4" id="syllabusAccordion">
+                                @if (Model.Syllabus != null && Model.Syllabus.Any())
+                                {
+                                    @foreach (var item in Model.Syllabus)
+                                    {
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="heading-@item.Id">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@item.Id" aria-expanded="false" aria-controls="collapse-@item.Id">
+                                                    <div class="d-flex w-100 justify-content-between align-items-center me-3">
+                                                        <span class="fw-bold">@item.Title</span>
+                                                        <span class="text-muted small">(@item.Lessons.Count bài học)</span>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div id="collapse-@item.Id" class="accordion-collapse collapse" aria-labelledby="heading-@item.Id" data-bs-parent="#syllabusAccordion">
+                                                <div class="accordion-body bg-light">
+                                                    <!-- Actions for Syllabus -->
+                                                    <div class="d-flex justify-content-end mb-3">
+                                                         <form asp-action="DeleteSyllabus" method="post" class="d-inline ajax-form">
+                                                            <input type="hidden" name="id" value="@item.Id" />
+                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete(this, 'Xóa chương này và toàn bộ bài học bên trong?')">Xóa chương này</button>
+                                                        </form>
+                                                    </div>
+
+                                                    <!-- List Lessons -->
+                                                    <ul class="list-group mb-3 lesson-sortable" data-syllabus-id="@item.Id">
+                                                        @if(item.Lessons != null && item.Lessons.Any())
+                                                        {
+                                                            @foreach(var lesson in item.Lessons.OrderBy(l => l.OrderIndex))
+                                                            {
+                                                                <li class="list-group-item" data-id="@lesson.Id">
+                                                                    <div class="d-flex justify-content-between align-items-center" id="lesson-display-@lesson.Id">
+                                                                        <div class="d-flex align-items-center">
+                                                                            <i class="bi bi-grip-vertical text-muted me-2 cursor-move" title="Kéo để sắp xếp"></i>
+                                                                            @if(lesson.Type == "Video") { <i class="bi bi-play-circle-fill text-danger me-2"></i> }
+                                                                            else { <i class="bi bi-book-half text-primary me-2"></i> }
+                                                                            <strong>@lesson.Title</strong>
+                                                                            <small class="text-muted ms-2">(@lesson.Duration min)</small>
+                                                                        </div>
+                                                                        <div class="d-flex gap-2">
+                                                                            <button type="button" class="btn btn-sm btn-outline-primary py-0" onclick="toggleEditLessonForm(@lesson.Id)">
+                                                                                <i class="bi bi-pencil-square"></i> Sửa
+                                                                            </button>
+                                                                            <form asp-action="DeleteLesson" method="post" class="d-inline ajax-form">
+                                                                                <input type="hidden" name="id" value="@lesson.Id" />
+                                                                                <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="confirmDelete(this, 'Xóa bài học này?')">
+                                                                                    <i class="bi bi-trash"></i> Xóa
+                                                                                </button>
+                                                                            </form>
+                                                                        </div>
+                                                                    </div>
+                                                                    
+                                                                    <div id="lesson-edit-@lesson.Id" class="mt-2 d-none p-4 border rounded-3 bg-white shadow-sm">
+                                                                        <div class="d-flex align-items-center mb-3">
+                                                                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-2 me-3">
+                                                                                <i class="bi bi-pencil-fill small"></i>
+                                                                            </div>
+                                                                            <h6 class="fw-bold mb-0 text-dark small text-uppercase">Chỉnh sửa bài học</h6>
+                                                                        </div>
+                                                                        
+                                                                        <form asp-action="UpdateLesson" method="post" class="ajax-form">
+                                                                            <input type="hidden" name="id" value="@lesson.Id" />
+                                                                            <div class="row g-3">
+                                                                                <div class="col-md-6">
+                                                                                    <label class="small fw-bold form-label">Tên bài học</label>
+                                                                                    <input type="text" name="title" class="form-control" value="@lesson.Title" required>
+                                                                                </div>
+                                                                                <div class="col-md-3">
+                                                                                    <label class="small fw-bold form-label">Loại</label>
+                                                                                    <select name="type" class="form-select" onchange="toggleLessonTypeUI(this)">
+                                                                                        <option value="Reading" selected="@(lesson.Type == "Reading" ? "selected" : null)">Bài đọc</option>
+                                                                                        <option value="Video" selected="@(lesson.Type == "Video" ? "selected" : null)">Video</option>
+                                                                                    </select>
+                                                                                </div>
+                                                                                <div class="col-md-3">
+                                                                                    <label class="small fw-bold form-label">Phút</label>
+                                                                                    <input type="number" name="duration" class="form-control" value="@lesson.Duration">
+                                                                                </div>
+                                                                                
+                                                                                <div class="col-12 lesson-content-group @(lesson.Type == "Video" ? "d-none" : "")">
+                                                                                     <label class="form-label small fw-bold">Nội dung chi tiết bài học</label>
+                                                                                     <div class="mb-3">
+                                                                                         <label class="small fw-bold form-label">Mô tả bài học (Hiển thị ở tab Tổng quan)</label>
+                                                                                         <textarea name="description" class="form-control" rows="2">@lesson.Description</textarea>
+                                                                                     </div>
+                                                                                     <textarea name="content" class="form-control rich-editor" rows="5">@lesson.Content</textarea>
+                                                                                 </div>
+                                                                                 <div class="col-12 lesson-video-group @(lesson.Type == "Reading" ? "d-none" : "")">
+                                                                                     <label class="small fw-bold form-label">URL Video (Youtube Embed)</label>
+                                                                                     <input type="text" name="videoUrl" class="form-control" value="@lesson.VideoUrl">
+                                                                                 </div>
+                                                                                
+                                                                                <div class="col-12 text-end mt-2">
+                                                                                    <button type="button" class="btn btn-link text-muted me-2" onclick="toggleEditLessonForm(@lesson.Id)">Hủy</button>
+                                                                                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">Lưu thay đổi</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </li>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <li class="list-group-item text-center text-muted small">Chưa có bài học nào.</li>
+                                                        }
+                                                    </ul>
+
+                                                    <!-- Add Lesson Form Redesigned -->
+                                                    <div class="card border-0 shadow-sm mt-4">
+                                                        <div class="card-body p-4 border rounded-3 bg-white">
+                                                            <div class="d-flex align-items-center mb-3">
+                                                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3">
+                                                                    <i class="bi bi-plus-circle-fill fs-5"></i>
+                                                                </div>
+                                                                <h6 class="fw-bold mb-0 text-dark">THÊM BÀI HỌC MỚI</h6>
+                                                            </div>
+                                                            
+                                                            <form asp-action="AddLesson" method="post" class="ajax-form" data-callback="reloadSyllabus">
+                                                                <input type="hidden" name="syllabusId" value="@item.Id" />
+                                                                
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-bold">Tên bài học</label>
+                                                                    <input type="text" name="title" class="form-control" placeholder="Nhập tiêu đề bài học..." required>
+                                                                </div>
+
+                                                                <div class="row g-3">
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label class="form-label small fw-bold">Loại bài học</label>
+                                                                        <div class="btn-group w-100" role="group">
+                                                                            <input type="radio" class="btn-check" name="type" id="typeReading-@item.Id" value="Reading" checked onchange="toggleLessonTypeUI(this)">
+                                                                            <label class="btn btn-outline-primary" for="typeReading-@item.Id"><i class="bi bi-book me-2"></i>Bài đọc</label>
+
+                                                                            <input type="radio" class="btn-check" name="type" id="typeVideo-@item.Id" value="Video" onchange="toggleLessonTypeUI(this)">
+                                                                            <label class="btn btn-outline-primary" for="typeVideo-@item.Id"><i class="bi bi-play-circle me-2"></i>Video</label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label class="form-label small fw-bold">Thời lượng ước tính (phút)</label>
+                                                                        <input type="number" name="duration" class="form-control" placeholder="Ví dụ: 10" value="5">
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <!-- Dynamic Inputs -->
+                                                                 <div class="mb-3 lesson-content-group">
+                                                                     <label class="form-label small fw-bold">Nội dung / Tổng quan bài học</label>
+                                                                      <div class="mb-3">
+                                                                          <label class="form-label small fw-bold">Mô tả bài học (Hiển thị ở tab Tổng quan)</label>
+                                                                          <textarea name="description" class="form-control" rows="2" placeholder="Nhập tóm tắt bài học..."></textarea>
+                                                                      </div>
+                                                                      <textarea name="content" class="form-control rich-editor" rows="5" placeholder="Nhập nội dung bài viết..."></textarea>
+                                                                 </div>
+                                                                 <div class="mb-3 lesson-video-group d-none">
+                                                                     <label class="form-label small fw-bold">URL Video (Youtube Embed)</label>
+                                                                      <input type="text" name="videoUrl" class="form-control" placeholder="https://www.youtube.com/embed/...">
+                                                                      <small class="text-muted">Lưu ý: Sử dụng link embed để video có thể hiển thị trực tiếp.</small>
+                                                                 </div>
+                                                                
+                                                                <div class="text-end">
+                                                                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                                                                        <i class="bi bi-plus-lg me-2"></i>Thêm bài học
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center text-muted py-4">Chưa có chương trình học nào. Hãy thêm chương mới bên dưới.</div>
+                                }
+                            </div>
+
+                            <form asp-action="AddSyllabus" method="post" class="card bg-light border-0">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3">Thêm chương lớn (Section)</h6>
+                                    <input type="hidden" name="courseId" value="@Model.Id" />
+                                    <div class="row g-2">
+                                        <div class="col-md-9">
+                                            <input type="text" name="title" class="form-control" placeholder="Tên chương (VD: Chương 1: Giới thiệu)" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                             <button class="btn btn-success w-100" type="submit">Thêm Chương</button>
+                                        </div>
+                                        <input type="hidden" name="duration" value="0">
+                                        <input type="hidden" name="lessonCount" value="0">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function showToast(message, type = 'primary') {
+                        const toastEl = document.getElementById('liveToast');
+                        const toastBody = document.getElementById('toastMessage');
+                        toastBody.innerText = message;
+                        
+                        toastEl.classList.remove('bg-primary', 'bg-success', 'bg-danger');
+                        toastEl.classList.add('bg-' + type);
+                        
+                        const toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                    }
+
+                    function toggleLessonTypeUI(element) {
+                        var form = element.closest('form');
+                        var type = element.value;
+                        if(type === 'Video') {
+                            form.querySelector('.lesson-video-group').classList.remove('d-none');
+                        } else {
+                            form.querySelector('.lesson-video-group').classList.add('d-none');
+                        }
+                    }
+
+                    function toggleLessonType(select) {
+                        var form = select.closest('form');
+                        var type = select.value;
+                        if(type === 'Video') {
+                            form.querySelector('.lesson-video-group').classList.remove('d-none');
+                        } else {
+                            form.querySelector('.lesson-video-group').classList.add('d-none');
+                        }
+                    }
+
+                    function toggleEditLessonForm(id) {
+                        var displayDiv = document.getElementById('lesson-display-' + id);
+                        var editDiv = document.getElementById('lesson-edit-' + id);
+                        if(editDiv.classList.contains('d-none')) {
+                            editDiv.classList.remove('d-none');
+                            displayDiv.classList.add('d-none');
+                        } else {
+                            editDiv.classList.add('d-none');
+                            displayDiv.classList.remove('d-none');
+                        }
+                    }
+
+                    // Global AJAX handler
+                    document.addEventListener('submit', function(e) {
+                        if (e.target.classList.contains('ajax-form')) {
+                            e.preventDefault();
+                            const form = e.target;
+                            const formData = new FormData(form);
+                            const url = form.action;
+                            
+                            // Show loading state if needed
+                            const submitBtn = form.querySelector('button[type="submit"]');
+                            const originalText = submitBtn ? submitBtn.innerHTML : '';
+                            if (submitBtn) submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
+
+                            fetch(url, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showToast(data.message || 'Thành công!', 'success');
+                                    // Save the current accordion state if it exists
+                                    const openAccordion = document.querySelector('.accordion-collapse.show');
+                                    if (openAccordion) localStorage.setItem('openSyllabusId', openAccordion.id);
+                                    
+                                    setTimeout(() => location.reload(), 800); 
+                                } else {
+                                    showToast(data.message || 'Có lỗi xảy ra!', 'danger');
+                                    if (submitBtn) submitBtn.innerHTML = originalText;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                showToast('Có lỗi kết nối!', 'danger');
+                                if (submitBtn) submitBtn.innerHTML = originalText;
+                            });
+                        }
+                    });
+
+                    function saveTab(tabId) {
+                        localStorage.setItem('activeExpertTab', tabId);
+                    }
+
+                    function confirmDelete(button, message) {
+                        const modalHtml = `
+                        <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered modal-sm">
+                                <div class="modal-content shadow">
+                                    <div class="modal-body text-center p-4">
+                                        <div class="text-danger mb-3"><i class="bi bi-exclamation-octagon fs-1"></i></div>
+                                        <h5 class="fw-bold">Xác nhận xóa</h5>
+                                        <p class="text-muted small">${message}</p>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-light w-100 fw-bold" data-bs-dismiss="modal">Hủy</button>
+                                            <button type="button" class="btn btn-danger w-100 fw-bold" id="confirmDeleteBtn">Xóa ngay</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                        
+                        // Remove existing modal if any
+                        const oldModal = document.getElementById('deleteConfirmModal');
+                        if (oldModal) oldModal.remove();
+                        
+                        document.body.insertAdjacentHTML('beforeend', modalHtml);
+                        const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+                        modal.show();
+                        
+                        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+                            const form = button.closest('form');
+                            // Trigger AJAX submission manually
+                            const event = new Event('submit', { cancelable: true });
+                            form.dispatchEvent(event);
+                            modal.hide();
+                        });
+                    }
+
+                    // On page load
+                    window.addEventListener('DOMContentLoaded', (event) => {
+                        // Restore Tab
+                        const activeTab = localStorage.getItem('activeExpertTab');
+                        if (activeTab) {
+                            const tabEl = document.querySelector(`a[href="#${activeTab}"]`);
+                            if (tabEl) {
+                                bootstrap.Tab.getOrCreateInstance(tabEl).show();
+                            }
+                        }
+                        
+                        // Restore Accordion
+                        const openSyllabusId = localStorage.getItem('openSyllabusId');
+                        if (openSyllabusId) {
+                            const collEl = document.getElementById(openSyllabusId);
+                            if (collEl) {
+                                bootstrap.Collapse.getOrCreateInstance(collEl).show();
+                                localStorage.removeItem('openSyllabusId'); // Clear after use
+                            }
+                        }
+                    });
+
+                    // Update existing forms to use AJAX
+                    document.querySelectorAll('form').forEach(form => {
+                        if (!form.hasAttribute('enctype') || form.getAttribute('enctype') !== 'multipart/form-data') {
+                            form.classList.add('ajax-form');
+                        }
+                    });
+                </script>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Summernote JS -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.rich-editor').summernote({
+                placeholder: 'Nhập nội dung bài học...',
+                tabsize: 2,
+                height: 300,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ]
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const sortables = document.querySelectorAll('.lesson-sortable');
+            sortables.forEach(el => {
+                new Sortable(el, {
+                    animation: 150,
+                    handle: '.cursor-move',
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function(evt) {
+                        const syllabusId = el.getAttribute('data-syllabus-id');
+                        const lessonIds = Array.from(el.querySelectorAll('li[data-id]')).map(li => parseInt(li.getAttribute('data-id')));
+                        
+                        console.log("Updating order for syllabus " + syllabusId, lessonIds);
+                        
+                        // Send to backend
+                        fetch('/Expert/UpdateLessonOrder', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                            },
+                            body: JSON.stringify({
+                                SyllabusId: parseInt(syllabusId),
+                                LessonIds: lessonIds
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showToast('Thành công', 'Đã cập nhật thứ tự bài học.', 'bg-success text-white');
+                            } else {
+                                showToast('Lỗi', data.message || 'Không thể cập nhật thứ tự.', 'bg-danger text-white');
+                                // Could potentially reload here to reset UI if it's critical
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            showToast('Lỗi hệ thống', 'Đã xảy ra lỗi khi lưu thứ tự.', 'bg-danger text-white');
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

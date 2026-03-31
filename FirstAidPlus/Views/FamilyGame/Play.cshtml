@@ -1,0 +1,331 @@
+@model FirstAidPlus.Models.GameSituation
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<style>
+    body {
+        background-color: #f8fafc;
+    }
+    .game-container {
+        max-width: 950px;
+        margin: 40px auto;
+        display: flex;
+        gap: 30px;
+    }
+    @@media (max-width: 768px) {
+        .game-container {
+            flex-direction: column;
+        }
+    }
+    .game-sidebar {
+        flex: 1;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid #f1f3f5;
+    }
+    .game-header {
+        background: linear-gradient(135deg, #d71920 0%, #ff4d4d 100%); /* Brand Red Gradient */
+        color: white;
+        padding: 40px 20px;
+        text-align: center;
+        border-bottom-left-radius: 20px;
+        border-bottom-right-radius: 20px;
+        box-shadow: 0 4px 10px rgba(215, 25, 32, 0.2);
+    }
+    .game-header-icon {
+        font-size: 3.5rem;
+        margin-bottom: 15px;
+    }
+    .game-header h2 {
+        font-weight: 800;
+        margin: 0;
+        font-size: 1.6rem;
+        letter-spacing: -0.5px;
+    }
+    .game-context {
+        padding: 30px 25px;
+    }
+    .context-box {
+        background-color: #fffafa; /* Light Red Tint */
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        font-size: 0.95rem;
+        border: 1px solid #ffebee;
+    }
+    .context-box p {
+        margin-bottom: 12px;
+        color: #444;
+        line-height: 1.6;
+    }
+    .context-box p:last-child {
+        margin-bottom: 0;
+    }
+    .question-title {
+        font-weight: 800;
+        color: #d71920;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 1.25rem;
+        line-height: 1.4;
+    }
+    .game-main {
+        flex: 1.5;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .option-btn {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 18px 24px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: #333;
+        position: relative;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .option-btn:hover {
+        border-color: #d71920;
+        background-color: #fffafa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(215, 25, 32, 0.08);
+    }
+    .option-btn.selected-correct {
+        border-color: #28a745;
+        background-color: #f6fff8;
+        color: #155724;
+    }
+    .option-btn.selected-incorrect {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+        color: #721c24;
+    }
+    .option-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        transform: none;
+        box-shadow: none;
+    }
+    .option-points {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border: 1px solid #dee2e6;
+    }
+    .option-btn:hover .option-points {
+        background-color: #ffebee;
+        color: #d71920;
+        border-color: #ffcdd2;
+    }
+    .explanation-box {
+        display: none;
+        margin-top: 12px;
+        padding: 18px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    .explanation-box.correct {
+        background-color: #f6fff8;
+        border-left: 5px solid #28a745;
+        color: #155724;
+    }
+    .explanation-box.incorrect {
+        background-color: #fff5f5;
+        border-left: 5px solid #dc3545;
+        color: #721c24;
+    }
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .game-won {
+        display: none;
+        text-align: center;
+        padding: 40px 30px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid #f1f3f5;
+        margin-top: 20px;
+        animation: fadeIn 0.5s ease;
+    }
+    .btn-brand {
+        background-color: #d71920;
+        color: white;
+        border: none;
+    }
+    .btn-brand:hover {
+        background-color: #b7151a;
+        color: white;
+    }
+</style>
+
+<div class="container pb-5">
+    <div class="mb-3 mt-4">
+        <a asp-action="Index" class="btn btn-sm btn-light border text-dark fw-bold rounded-pill px-3 py-2 shadow-sm">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại bài học
+        </a>
+    </div>
+
+    <div class="game-container">
+        <!-- Sidebar: Situation Info -->
+        <div class="game-sidebar">
+            <div class="game-header">
+                <div class="game-header-icon">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="Icon" width="90" style="filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.2));" />
+                    }
+                    else
+                    {
+                        <i class="fas fa-medkit"></i>
+                    }
+                </div>
+                <h2>@Model.Title</h2>
+            </div>
+            <div class="game-context">
+                <div class="context-box">
+                    @if (!string.IsNullOrEmpty(Model.CharacterContext))
+                    {
+                        <p><i class="fas fa-user-circle me-3 fs-5" style="color: #d71920;"></i><strong>Nhân vật:</strong> @Model.CharacterContext</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.SituationDescription))
+                    {
+                        <p><i class="fas fa-exclamation-circle me-3 fs-5 text-warning"></i><strong>Tình huống:</strong> @Model.SituationDescription</p>
+                    }
+                </div>
+                <div class="question-title">
+                    <i class="fas fa-question-circle me-2"></i>@Model.Question
+                </div>
+            </div>
+        </div>
+
+        <!-- Main: Options -->
+        <div class="game-main">
+            @if (Model.Options != null && Model.Options.Any())
+            {
+                foreach (var option in Model.Options)
+                {
+                    <div class="option-container mb-2">
+                        <button class="option-btn w-100" 
+                                data-id="@option.Id" 
+                                data-correct="@option.IsCorrect.ToString().ToLower()" 
+                                data-points="@option.Points"
+                                onclick="checkAnswer(this)">
+                            <div>
+                                @if (!string.IsNullOrEmpty(option.IconUrl))
+                                {
+                                    <i class="@option.IconUrl me-3 fs-5 text-muted"></i>
+                                }
+                                @option.OptionText
+                            </div>
+                            <span class="option-points">+@option.Points điểm</span>
+                        </button>
+                        
+                        <div class="explanation-box @(option.IsCorrect ? "correct" : "incorrect") shadow-sm" id="explanation-@option.Id">
+                            <strong>@(option.IsCorrect ? "Chính xác!" : "Chú ý!")</strong> @option.Explanation
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-warning border-0 shadow-sm rounded-4 p-4 text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3 text-warning"></i><br>
+                    Chưa có lựa chọn nào cho bài học này.
+                </div>
+            }
+            
+            <div class="game-won" id="gameWonBox">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                </div>
+                <h2 class="text-success mb-3 fw-bold">Tuyệt vời!</h2>
+                <p class="fs-5 text-muted mb-4">Bạn đã xử lý tình huống chính xác! Kiến thức này sẽ rất hữu ích cho gia đình bạn.</p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a asp-action="Index" class="btn btn-brand px-5 py-3 rounded-pill fw-bold shadow-sm fs-5">
+                        Tiếp tục học <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let hasAnsweredCorrectly = false;
+
+        function checkAnswer(button) {
+            if (hasAnsweredCorrectly) return;
+
+            const isCorrect = button.getAttribute('data-correct') === 'true';
+            const optionId = button.getAttribute('data-id');
+            const points = parseInt(button.getAttribute('data-points') || '0');
+            const explanationBox = document.getElementById('explanation-' + optionId);
+
+            // Disable all buttons
+            const allButtons = document.querySelectorAll('.option-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                button.classList.add('selected-correct');
+                explanationBox.style.display = 'block';
+                hasAnsweredCorrectly = true;
+                
+                // Show win box
+                setTimeout(() => {
+                    document.getElementById('gameWonBox').style.display = 'block';
+                    // Scroll to bottom softly
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                }, 1000);
+
+                // Save progress
+                saveProgress(@Model.Id, points);
+            } else {
+                button.classList.add('selected-incorrect');
+                explanationBox.style.display = 'block';
+                
+                // Re-enable other unclicked buttons so they can try again
+                setTimeout(() => {
+                    allButtons.forEach(btn => {
+                        if (!btn.classList.contains('selected-incorrect')) {
+                            btn.disabled = false;
+                        }
+                    });
+                }, 1500);
+            }
+        }
+
+        function saveProgress(situationId, pts) {
+            fetch('/FamilyGame/SubmitProgress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ SituationId: situationId, ScoreEarned: pts })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Progress saved:', data);
+            })
+            .catch(err => console.error('Error saving progress:', err));
+        }
+    </script>
+}

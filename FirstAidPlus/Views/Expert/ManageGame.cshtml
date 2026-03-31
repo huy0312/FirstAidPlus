@@ -1,0 +1,77 @@
+@model IEnumerable<FirstAidPlus.Models.FamilyCourseCategory>
+@{
+    ViewData["Title"] = "Quản lý Trò chơi Gia đình";
+    Layout = "~/Views/Shared/_ExpertLayout.cshtml";
+}
+
+<div class="container-fluid p-0">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold text-slate-800">Quản lý Trò chơi Gia đình</h3>
+            <p class="text-slate-500 mb-0">Các danh mục trò chơi bạn được phân công quản lý</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-gamepad fa-4x mb-3 opacity-25"></i>
+                    <h5 class="fw-bold">Chưa có trò chơi nào</h5>
+                    <p>Bạn chưa được phân công quản lý danh mục trò chơi nào. Vui lòng liên hệ quản trị viên.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var category in Model)
+            {
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden text-decoration-none">
+                        <div class="card-body p-4 text-center">
+                            @if (!string.IsNullOrEmpty(category.IconUrl))
+                            {
+                                <img src="@category.IconUrl" class="mb-3 rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" alt="@category.Title" />
+                            }
+                            else
+                            {
+                                <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white mb-3"
+                                     style="width: 80px; height: 80px; background-color: @(category.ColorHex ?? "#e74c3c"); font-size: 2rem; font-weight: bold;">
+                                    @category.Title.FirstOrDefault()
+                                </div>
+                            }
+                            <h5 class="fw-bold text-dark">@category.Title</h5>
+                            <p class="text-muted small mb-4">@category.Description</p>
+                            
+                            <div class="d-flex justify-content-center gap-3 mb-3">
+                                <div class="text-center px-3 py-2 bg-light rounded-3">
+                                    <div class="fw-bold text-primary">@category.Situations?.Count()</div>
+                                    <div class="small text-muted" style="font-size: 0.75rem;">Tình huống</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-top p-3 text-center">
+                            <a asp-action="EditCategory" asp-route-id="@category.Id" class="btn btn-outline-primary rounded-pill px-4 w-100 fw-medium">
+                                <i class="fas fa-edit me-1"></i> Quản lý nội dung
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .text-slate-800 { color: #1e293b; }
+    .text-slate-500 { color: #64748b; }
+</style>

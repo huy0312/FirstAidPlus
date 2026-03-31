@@ -1,0 +1,116 @@
+@model IEnumerable<FirstAidPlus.Models.Course>
+
+@{
+    ViewData["Title"] = "Tất cả khóa học";
+}
+
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tất cả khóa học</li>
+        </ol>
+    </nav>
+
+    <div class="mb-5">
+        <h1 class="display-4 fw-bold">Tất cả khóa học</h1>
+        <p class="lead text-muted">Khám phá FirstAid+ để nâng cao kỹ năng ứng phó khẩn cấp của bạn</p>
+    </div>
+
+    <div class="card p-3 mb-5 border-0 shadow-sm">
+        <form asp-controller="Course" asp-action="Index" method="get">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0" name="searchString" value="@ViewBag.CurrentSearch" placeholder="Tìm kiếm khóa học...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select bg-light border-0" name="category" onchange="this.form.submit()">
+                        <option value="Tất cả danh mục" selected="@(ViewBag.CurrentCategory == "Tất cả danh mục" || string.IsNullOrEmpty(ViewBag.CurrentCategory) ? "selected" : null)">Tất cả danh mục</option>
+                        <option value="CPR" selected="@(ViewBag.CurrentCategory == "CPR" ? "selected" : null)">CPR & AED</option>
+                        <option value="First Aid" selected="@(ViewBag.CurrentCategory == "First Aid" ? "selected" : null)">First Aid</option>
+                        <option value="BLS" selected="@(ViewBag.CurrentCategory == "BLS" ? "selected" : null)">BLS Health Provider</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select bg-light border-0" disabled>
+                        <option selected>Tất cả cấp độ</option>
+                    </select>
+                </div>
+                 <div class="col-md-2">
+                    <button class="btn btn-primary w-100" type="submit">
+                        Tìm kiếm
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <p class="text-muted mb-4">Hiển thị @Model.Count() trong tổng số @ViewBag.TotalCount khóa học</p>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">
+                        <div class="position-relative">
+                            <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://placehold.co/600x400?text=No+Image" : item.ImageUrl)" class="card-img-top" alt="@item.Title" style="height: 200px; object-fit: cover;">
+                            
+                            @if (item.IsPopular)
+                            {
+                                 <span class="position-absolute top-0 start-0 badge bg-danger m-2">Phổ biến</span>
+                            }
+                            
+                            <!-- Using Price as a proxy for level if needed, or just hardcoding 'Cơ bản' based on image for now since Level isn't in model -->
+                             <span class="position-absolute top-0 end-0 badge bg-light text-dark m-2">Cơ bản</span>
+                        </div>
+                       
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">@item.Title</h5>
+                            <p class="card-text text-muted small">@item.Description</p>
+                            
+                            <div class="d-flex justify-content-between align-items-end mt-3 mb-3">
+                                <div>
+                                    <small class="d-block text-muted">Thời lượng:</small>
+                                    <span class="fw-bold">@item.GetFormattedDuration()</span>
+                                </div>
+                                 <div>
+                                    <small class="d-block text-muted">Danh mục:</small>
+                                    <span class="fw-bold text-truncate" style="max-width: 150px; display: inline-block;">@item.CertificateName</span>
+                                </div>
+                            </div>
+                            
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-danger w-100 fw-bold">
+                                Xem chi tiết
+                            </a>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <nav aria-label="Course pagination" class="mt-5">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@(ViewBag.CurrentPage - 1)" asp-route-searchString="@ViewBag.CurrentSearch" asp-route-category="@ViewBag.CurrentCategory">Trang trước</a>
+                </li>
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pageNumber="@i" asp-route-searchString="@ViewBag.CurrentSearch" asp-route-category="@ViewBag.CurrentCategory">@i</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-pageNumber="@(ViewBag.CurrentPage + 1)" asp-route-searchString="@ViewBag.CurrentSearch" asp-route-category="@ViewBag.CurrentCategory">Trang sau</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

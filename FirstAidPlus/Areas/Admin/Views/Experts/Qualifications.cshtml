@@ -1,0 +1,153 @@
+@model IEnumerable<FirstAidPlus.Models.Qualification>
+@{
+    ViewData["Title"] = "Duyệt chứng chỉ hành nghề";
+}
+
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="fas fa-certificate text-primary me-2"></i>Duyệt chứng chỉ hành nghề</h4>
+            <p class="text-muted small mb-0">Xem và phê duyệt các chứng chỉ chuyên môn của chuyên gia</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light bg-opacity-75">
+                    <tr class="text-uppercase text-muted small fw-bold">
+                        <th class="ps-4 py-3 border-0">Chuyên gia</th>
+                        <th class="py-3 border-0">Chứng chỉ</th>
+                        <th class="py-3 border-0">Ngày cấp</th>
+                        <th class="py-3 border-0">Trạng thái</th>
+                        <th class="py-3 border-0 text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    @if (Model.Any())
+                    {
+                        @foreach (var qual in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">@qual.User?.FullName</h6>
+                                            <small class="text-muted">@qual.User?.Email</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@qual.Title</div>
+                                    <div class="small text-muted text-truncate" style="max-width: 250px;">@qual.Description</div>
+                                    @if (!string.IsNullOrEmpty(qual.CertificateUrl))
+                                    {
+                                        <a href="@qual.CertificateUrl" target="_blank" class="small text-primary text-decoration-none mt-1 d-inline-block">
+                                            <i class="fas fa-external-link-alt me-1"></i> Xem tệp đính kèm
+                                        </a>
+                                    }
+                                </td>
+                                <td>@qual.IssuedAt.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (qual.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">Chờ duyệt</span>
+                                    }
+                                    else if (qual.Status == "Approved")
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Đã duyệt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3" title="@qual.AdminComment">Từ chối</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    @if (qual.Status == "Pending")
+                                    {
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <form asp-action="ApproveQualification" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@qual.Id" />
+                                                <button type="submit" class="btn btn-sm btn-success rounded-3 px-3">
+                                                    <i class="fas fa-check me-1"></i> Duyệt
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-3 px-3" 
+                                                    onclick="openRejectModal(@qual.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(qual.Title))')">
+                                                <i class="fas fa-times me-1"></i> Từ chối
+                                            </button>
+                                        </div>
+                                    }
+                                    else if (qual.Status == "Rejected" && !string.IsNullOrEmpty(qual.AdminComment))
+                                    {
+                                        <small class="text-muted italic">Lý do: @qual.AdminComment</small>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-certificate fa-3x mb-3 opacity-50"></i>
+                                    <p class="mb-0">Không có chứng chỉ nào cần phê duyệt.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form asp-action="RejectQualification" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="rejectQualId" />
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Từ chối chứng chỉ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <p class="text-muted small mb-3">Bạn đang từ chối chứng chỉ: <strong id="rejectQualTitle" class="text-dark"></strong></p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Lý do từ chối</label>
+                        <textarea name="reason" class="form-control rounded-3" rows="3" placeholder="Nhập lý do ví dụ: Thông tin không chính xác, hình ảnh mờ..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-3 px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-3 px-4">Xác nhận từ chối</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openRejectModal(id, title) {
+            document.getElementById('rejectQualId').value = id;
+            document.getElementById('rejectQualTitle').innerText = title;
+            new bootstrap.Modal(document.getElementById('rejectModal')).show();
+        }
+    </script>
+}

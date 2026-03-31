@@ -1,0 +1,141 @@
+@model FirstAidPlus.ViewModels.EditProfileViewModel
+
+@{
+    ViewData["Title"] = "Chỉnh sửa hồ sơ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4 py-md-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Hồ sơ của tôi</h2>
+                    <p class="text-muted mb-0 small">Quản lý thông tin cá nhân, ảnh đại diện và thông tin liên hệ.</p>
+                </div>
+                <a asp-action="ChangePassword" asp-controller="Account" class="btn btn-outline-dark btn-sm">
+                    <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    @if (ViewBag.Success != null)
+                    {
+                        <div class="alert alert-success rounded-3 shadow-sm mb-4">
+                            <i class="fas fa-check-circle me-2"></i>@ViewBag.Success
+                        </div>
+                    }
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger rounded-3 shadow-sm mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.Error
+                        </div>
+                    }
+
+                    <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
+                        <div class="row g-4">
+                            <!-- Avatar + quick info -->
+                            <div class="col-md-4 border-end-md">
+                                <div class="text-center">
+                                    <div class="position-relative d-inline-block mb-3">
+                                        <img id="avatarPreview"
+                                             src="@(string.IsNullOrEmpty(Model.ExistingAvatarUrl) ? "/images/default-avatar.png" : Model.ExistingAvatarUrl)"
+                                             alt="Avatar"
+                                             class="rounded-circle shadow-sm"
+                                             style="width: 140px; height: 140px; object-fit: cover; border: 4px solid #fff;"
+                                             onerror="this.src='https://ui-avatars.com/api/?name=@Model.FullName&background=random&size=150';" />
+                                        <button type="button"
+                                                class="btn btn-sm btn-light rounded-circle shadow position-absolute bottom-0 end-0"
+                                                style="width: 40px; height: 40px;"
+                                                onclick="document.getElementById('AvatarFile').click();">
+                                            <i class="fas fa-camera"></i>
+                                        </button>
+                                    </div>
+                                    <div class="mb-2 fw-bold">@Model.FullName</div>
+                                    <div class="text-muted small mb-3">@Model.Email</div>
+                                    <input asp-for="AvatarFile"
+                                           id="AvatarFile"
+                                           type="file"
+                                           class="d-none"
+                                           accept="image/*"
+                                           onchange="previewImage(this)" />
+                                    <p class="text-muted small mb-0">
+                                        <i class="fas fa-info-circle me-1"></i>Ảnh JPG/PNG, tối đa 2MB.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Form fields -->
+                            <div class="col-md-8">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="Username" class="form-label small text-uppercase text-muted fw-semibold">Tên đăng nhập</label>
+                                        <input asp-for="Username" class="form-control form-control-sm bg-light" readonly disabled />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="Email" class="form-label small text-uppercase text-muted fw-semibold">Email</label>
+                                        <input asp-for="Email" class="form-control form-control-sm bg-light" readonly disabled />
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label asp-for="FullName" class="form-label fw-semibold">Họ và tên</label>
+                                        <input asp-for="FullName" class="form-control" placeholder="Nhập họ tên của bạn" />
+                                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Phone" class="form-label fw-semibold">Số điện thoại</label>
+                                        <input asp-for="Phone" class="form-control" placeholder="09xxxxxxxxx" />
+                                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="Address" class="form-label fw-semibold">Địa chỉ</label>
+                                        <input asp-for="Address" class="form-control" placeholder="Số nhà, đường, quận/huyện..." />
+                                        <span asp-validation-for="Address" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label asp-for="Bio" class="form-label fw-semibold">Giới thiệu bản thân</label>
+                                        <textarea asp-for="Bio"
+                                                  class="form-control"
+                                                  rows="4"
+                                                  placeholder="Chia sẻ đôi chút về bạn, kinh nghiệm hoặc lĩnh vực quan tâm..."></textarea>
+                                        <span asp-validation-for="Bio" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mt-4 gap-3">
+                                    <span class="text-muted small">
+                                        Thay đổi của bạn sẽ được áp dụng trên toàn bộ nền tảng FirstAid+.
+                                    </span>
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary px-4">Hủy</a>
+                                        <button type="submit" class="btn btn-danger px-4 fw-bold">
+                                            <i class="fas fa-save me-2"></i>Lưu thay đổi
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#avatarPreview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

@@ -30,6 +30,16 @@ services:
       - PayOS__ClientId=${PAYOS_CLIENT_ID}
       - PayOS__ApiKey=${PAYOS_API_KEY}
       - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
+      - EmailSettings__MailServer=${EMAIL_MAIL_SERVER}
+      - EmailSettings__MailPort=${EMAIL_MAIL_PORT}
+      - EmailSettings__SenderName=${EMAIL_SENDER_NAME}
+      - EmailSettings__SenderEmail=${EMAIL_SENDER_EMAIL}
+      - EmailSettings__SenderPassword=${EMAIL_SENDER_PASSWORD}
+      - VnPay__TmnCode=${VNPAY_TMN_CODE}
+      - VnPay__HashSecret=${VNPAY_HASH_SECRET}
+      - Momo__PartnerCode=${MOMO_PARTNER_CODE}
+      - Momo__AccessKey=${MOMO_ACCESS_KEY}
+      - Momo__SecretKey=${MOMO_SECRET_KEY}
 
 volumes:
   pgdata:

@@ -1,0 +1,337 @@
+@using FirstAidPlus.Repositories
+@inject ICourseRepository CourseRepository
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FirstAid+</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FirstAidPlus.styles.css" asp-append-version="true" />
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    @if (ViewData["HideHeaderFooter"] as bool? != true)
+    {
+    <!-- Main Navigation -->
+    <header class="sticky-top bg-white border-bottom shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-light py-2">
+            <div class="container-fluid px-4 px-lg-5">
+                <!-- Logo -->
+                <a class="navbar-brand d-flex align-items-center me-4" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo.png" alt="FirstAid+ Logo" height="65" class="d-inline-block align-text-top" />
+                </a>
+
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <!-- Categories Dropdown (Left) -->
+                    <ul class="navbar-nav me-3 mb-2 mb-lg-0 fw-medium">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link text-dark dropdown-toggle" href="#" id="coursesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-weight: 500;">
+                                Khóa học
+                            </a>
+                            <ul class="dropdown-menu border-0 shadow-sm rounded-3 mt-2" aria-labelledby="coursesDropdown">
+                                <li><a class="dropdown-item fw-bold text-danger py-2" asp-controller="Course" asp-action="Index">Khám phá tất cả</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                @{
+                                    var courses = await CourseRepository.GetAllCoursesAsync();
+                                    foreach(var course in courses)
+                                    {
+                                        <li><a class="dropdown-item py-2" asp-controller="Course" asp-action="Index" asp-route-searchString="@course.Title">@course.Title</a></li>
+                                    }
+                                }
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <!-- Search Bar (Center, Expanded) -->
+                    <form class="d-flex flex-grow-1 mx-lg-4 my-3 my-lg-0" role="search" action="/Course" method="get">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill text-muted px-3" style="border-right: none;" id="search-addon">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="search" name="searchString" class="form-control bg-white border-start-0 rounded-end-pill px-0 shadow-none py-2" placeholder="Tìm kiếm tài liệu, khóa học..." aria-label="Search" aria-describedby="search-addon" style="border-left: none; box-shadow: none !important;">
+                        </div>
+                    </form>
+
+                    <!-- Links & Actions (Right) -->
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-medium align-items-lg-center gap-1 gap-lg-3 mt-3 mt-lg-0">
+                        <li class="nav-item dropdown d-none d-xl-block">
+                            <a class="nav-link text-dark dropdown-toggle" href="#" id="businessDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Doanh nghiệp
+                            </a>
+                            <ul class="dropdown-menu border-0 shadow-sm rounded-3 mt-2" aria-labelledby="businessDropdown">
+                                <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Business">Giải pháp doanh nghiệp</a></li>
+                                <li><a class="dropdown-item py-2 fw-bold text-danger" asp-controller="Subscription" asp-action="Index">Gói đào tạo</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item d-none d-xl-block">
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="About">
+                                Về chúng tôi
+                            </a>
+                        </li>
+                        <li class="nav-item d-none d-xl-block">
+                            <a class="nav-link text-dark" href="/#faq">
+                                FAQ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-success fw-bold text-nowrap d-flex align-items-center gap-2 px-2" asp-controller="FamilyGame" asp-action="Index">
+                                <i class="fas fa-gamepad"></i> Gia đình
+                            </a>
+                        </li>
+                        <li class="nav-item opacity-50 d-none d-lg-block">|</li>
+
+                        <!-- Notifications & Profile -->
+                        <div class="d-flex align-items-center gap-3 ms-2 mt-2 mt-lg-0">
+                            <!-- Medical Profile -->
+                            <a href="#" class="text-dark text-decoration-none position-relative opacity-75 hover-opacity-100 transition-all" data-bs-toggle="offcanvas" data-bs-target="#medicalProfileOffcanvas" aria-controls="medicalProfileOffcanvas" title="Hồ sơ y tế">
+                                <i class="far fa-heart fa-lg"></i>
+                            </a>
+
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <!-- Notification Bell -->
+                                <div class="dropdown me-1">
+                                    <a href="#" class="text-dark text-decoration-none position-relative opacity-75 hover-opacity-100 transition-all" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
+                                        <i class="far fa-bell fa-lg"></i>
+                                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem; padding: 0.2rem 0.35rem;">0</span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-0" aria-labelledby="notificationDropdown" style="width: 340px; max-height: 450px; overflow-y: auto;">
+                                        <li class="dropdown-header border-bottom p-3 d-flex justify-content-between align-items-center bg-light rounded-top">
+                                            <h6 class="mb-0 fw-bold text-dark">Thông báo</h6>
+                                            <a href="javascript:void(0)" class="text-decoration-none small text-primary" id="markAllRead">Đánh dấu đã đọc</a>
+                                        </li>
+                                        <div id="notificationList">
+                                            <!-- Notifications will be loaded here -->
+                                            <li class="p-5 text-center text-muted small"><i class="far fa-bell-slash mb-2 fs-4 opacity-50"></i><br/>Không có thông báo mới</li>
+                                        </div>
+                                        <li class="border-top text-center p-2 bg-light rounded-bottom">
+                                            <a href="#" class="text-decoration-none small fw-bold text-primary">Xem tất cả thông báo</a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                bool hasActiveSubscription = false;
+                                var dbContext = Context.RequestServices.GetService<FirstAidPlus.Data.AppDbContext>();
+                                if (dbContext != null)
+                                {
+                                    var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                    if (int.TryParse(userIdClaim, out int uid))
+                                    {
+                                        hasActiveSubscription = dbContext.UserSubscriptions.Any(s => s.UserId == uid && s.Status == "Active" && s.EndDate > DateTime.UtcNow);
+                                    }
+                                }
+
+                                var fullName = User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity.Name;
+                                var avatarUrl = User.Claims.FirstOrDefault(c => c.Type == "AvatarUrl")?.Value;
+                                <div class="dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark fw-bold small d-flex align-items-center p-0 ms-2" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: none !important; box-shadow: none !important;">
+                                        <div class="position-relative">
+                                            <img src="@(string.IsNullOrEmpty(avatarUrl) ? "https://ui-avatars.com/api/?name=" + fullName + "&background=random&color=fff" : avatarUrl)" 
+                                                 alt="Avatar" class="rounded-circle border border-2 border-white shadow-sm" width="40" height="40" style="object-fit:cover;">
+                                            @if(hasActiveSubscription)
+                                            {
+                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning border border-2 border-white" style="padding: 0.25rem 0.2rem; transform: translate(-30%, -5%) !important;" title="Tài khoản PRO">
+                                                    <i class="fas fa-crown text-white" style="font-size: 10px;"></i>
+                                                </span>
+                                            }
+                                        </div>
+                                        <div class="d-none d-md-flex flex-column align-items-start lh-1 ms-2 me-1">
+                                            <span style="font-size: 0.85rem;">@fullName</span>
+                                            @if(hasActiveSubscription)
+                                            {
+                                                <small class="text-warning fw-bolder mt-1" style="font-size: 0.7rem;"><i class="fas fa-gem me-1"></i>PRO</small>
+                                            }
+                                        </div>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-3" aria-labelledby="userDropdown">
+                                        <li>
+                                            <div class="px-3 py-2 border-bottom">
+                                                <div class="fw-bold text-truncate" style="max-width: 200px;">@fullName</div>
+                                                <div class="small text-muted text-truncate" style="max-width: 200px;">@User.Identity.Name</div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2 mt-1" asp-controller="Account" asp-action="EditProfile">
+                                                <i class="fas fa-user-edit me-2 text-muted small"></i>Chỉnh sửa hồ sơ
+                                            </a>
+                                        </li>
+                                        @if(User.IsInRole("Admin"))
+                                        {
+                                             <li>
+                                                <a class="dropdown-item py-2 text-danger fw-bold" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                                                    <i class="fas fa-tachometer-alt me-2 small"></i>Admin Dashboard
+                                                </a>
+                                            </li>
+                                        }
+                                        @if(User.IsInRole("Expert"))
+                                        {
+                                            <li>
+                                                <a class="dropdown-item py-2 text-primary fw-bold" asp-controller="Expert" asp-action="Dashboard">
+                                                    <i class="fas fa-chart-line me-2 small"></i>Bảng điều khiển
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item py-2 text-primary fw-bold" asp-controller="Expert" asp-action="MyCourses">
+                                                    <i class="fas fa-chalkboard-teacher me-2 small"></i>Quản lý khóa học
+                                                </a>
+                                            </li>
+                                             <li>
+                                                <a class="dropdown-item py-2 text-primary fw-bold" asp-controller="Expert" asp-action="Chat">
+                                                    <i class="fas fa-comments me-2 small"></i>Tin nhắn khách hàng
+                                                </a>
+                                            </li>
+                                        }
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-controller="Enrollment" asp-action="MyCourses">
+                                                <i class="fas fa-book-open me-2 text-muted small"></i>Khóa học của tôi
+                                            </a>
+                                        </li>
+                                         <li>
+                                            <a class="dropdown-item py-2" asp-controller="Account" asp-action="ChangePassword">
+                                                <i class="fas fa-key me-2 text-muted small"></i>Đổi mật khẩu
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item py-2 text-danger" asp-controller="Account" asp-action="Logout">
+                                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-lg-auto">
+                                    <button type="button" class="btn btn-outline-dark px-4 py-2 rounded-1 fw-bold border-2" data-bs-toggle="modal" data-bs-target="#loginRegisterModal" onclick="switchLoginTab()">Đăng nhập</button>
+                                    <button type="button" class="btn btn-dark px-4 py-2 rounded-1 fw-bold" data-bs-toggle="modal" data-bs-target="#loginRegisterModal" onclick="switchRegisterTab()">Đăng ký học</button>
+                                </div>
+                            }
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    }
+
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+
+    <partial name="_LoginRegisterModal" />
+
+    @if (ViewData["HideHeaderFooter"] as bool? != true)
+    {
+        <footer class="bg-dark text-white pt-5 pb-3 position-relative">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="mb-3">
+                         <img src="~/images/logo.png" alt="FirstAid+ Logo" height="60" style="filter: brightness(0) invert(1);" />
+                         <span class="fw-bold fs-4 ms-2 align-middle">FirstAid+</span>
+                    </div>
+                    <p class="small text-muted mb-4" style="max-width: 350px;">Nền tảng đào tạo sơ cấp cứu trực tuyến hàng đầu. Chứng chỉ quốc tế được công nhận tại hơn 195 quốc gia.</p>
+                    <div class="d-flex gap-2">
+                        <a href="#" class="btn btn-outline-secondary btn-sm rounded-1 text-white border-secondary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="btn btn-outline-secondary btn-sm rounded-1 text-white border-secondary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="btn btn-outline-secondary btn-sm rounded-1 text-white border-secondary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="fw-bold mb-3">Khóa học</h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-white">Hồi sức tim phổi CPR</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-white">First Aid</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-white">BLS Provider</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-white">Pediatric First Aid</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted hover-white">ACLS</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Liên hệ</h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-3">
+                            <div class="text-white-50">Hotline</div>
+                            <div class="fw-bold text-white fs-5">1900 1818</div>
+                        </li>
+                        <li class="mb-3">
+                            <div class="text-white-50">Email</div>
+                            <div class="text-white">support@firstaid.vn</div>
+                        </li>
+                        <li class="mb-3">
+                            <div class="text-white-50">Địa chỉ</div>
+                            <div class="text-white">123 Đường Lê Lợi, Q.1<br>TP. Hồ Chí Minh</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-secondary mt-5 opacity-25">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 small text-muted">
+                <div class="order-2 order-md-1">&copy; 2026 FirstAidPlus. All rights reserved.</div>
+                <div class="d-flex gap-3 order-1 order-md-2">
+                    <a href="#" class="text-muted text-decoration-none">Terms</a>
+                    <a href="#" class="text-muted text-decoration-none">Privacy</a>
+                    <a href="#" class="text-muted text-decoration-none">Cookies</a>
+                </div>
+            </div>
+        </div>
+        </footer>
+    }
+
+    <!-- Chat Trigger Button (Bootstrap Offcanvas) -->
+        <button class="btn btn-danger rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4 d-flex align-items-center justify-content-center" 
+                type="button" 
+                data-bs-toggle="offcanvas" 
+                data-bs-target="#chatOffcanvas" 
+                aria-controls="chatOffcanvas"
+                style="width: 60px; height: 60px; z-index: 1050;">
+            <i class="far fa-comment-dots fa-2x"></i>
+        </button>
+
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script src="~/js/notifications.js" asp-append-version="true"></script>
+    <script>
+        function switchLoginTab() {
+            var loginTab = new bootstrap.Tab(document.querySelector('#login-tab'));
+            loginTab.show();
+        }
+        function switchRegisterTab() {
+            var regTab = new bootstrap.Tab(document.querySelector('#register-tab'));
+            regTab.show();
+        }
+    </script>
+    @if(TempData["ShowLoginModal"] != null && (bool)TempData["ShowLoginModal"])
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var loginModal = new bootstrap.Modal(document.getElementById('loginRegisterModal'));
+                switchLoginTab();
+                var returnUrlInput = document.getElementById('login-return-url');
+                if (returnUrlInput) {
+                    returnUrlInput.value = '@Html.Raw(TempData["ReturnUrl"])';
+                }
+                loginModal.show();
+            });
+        </script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+    <partial name="_ChatOffcanvas" />
+    <partial name="_MedicalProfileOffcanvas" />
+</body>
+</html>

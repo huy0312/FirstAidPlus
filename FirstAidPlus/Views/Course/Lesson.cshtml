@@ -1,0 +1,577 @@
+@model FirstAidPlus.Models.CourseLesson
+@{
+    var course = ViewBag.Course as FirstAidPlus.Models.Course;
+    var allSyllabus = ViewBag.AllSyllabus as List<FirstAidPlus.Models.CourseSyllabus>;
+    var currentLessonId = (int)ViewBag.CurrentLessonId;
+    int? prevId = ViewBag.PrevLessonId;
+    int? nextId = ViewBag.NextLessonId;
+    ViewData["Title"] = Model.Title;
+    ViewData["HideHeaderFooter"] = true;
+}
+
+@functions {
+    public string GetEmbedUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return url;
+        if (url.Contains("youtube.com/embed")) return url;
+        if (url.Contains("youtube.com/watch?v="))
+        {
+            var videoId = url.Split("v=")[1];
+            var amp = videoId.IndexOf('&');
+            if (amp != -1) videoId = videoId.Substring(0, amp);
+            return $"https://www.youtube.com/embed/{videoId}";
+        }
+        if (url.Contains("youtu.be/"))
+        {
+            return $"https://www.youtube.com/embed/{url.Split('/').Last()}";
+        }
+        return url;
+    }
+}
+
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+<style>
+    :root {
+        --plyr-color-main: #a435f0; /* Udemy purple */
+        --plyr-focus-visible-color: #a435f0;
+    }
+    body {
+        background-color: #fff;
+        overflow-y: hidden; /* Prevent body scroll, handle scroll in columns */
+    }
+    .udemy-navbar {
+        height: 56px;
+        background-color: #1c1d1f;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+    }
+    .udemy-navbar-brand {
+        display: flex;
+        align-items: center;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    .udemy-navbar-brand img {
+        height: 32px;
+        margin-right: 12px;
+        filter: brightness(0) invert(1);
+    }
+    .udemy-navbar-brand:hover {
+        color: #fff;
+    }
+    .udemy-navbar-divider {
+        width: 1px;
+        height: 24px;
+        background-color: #3e4143;
+        margin: 0 16px;
+    }
+    .udemy-navbar-title {
+        font-weight: 400;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #d1d7dc;
+    }
+    .udemy-navbar-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .udemy-action-btn {
+        background: none;
+        border: none;
+        color: #d1d7dc;
+        font-weight: 500;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        transition: color 0.2s;
+    }
+    .udemy-action-btn:hover {
+        color: #fff;
+    }
+    
+    .udemy-layout {
+        display: block; /* No longer flex container to simplify fixed sidebar */
+        min-height: calc(100vh - 56px);
+        margin-top: 56px;
+        width: 100%;
+        position: relative;
+    }
+    .udemy-main {
+        width: auto;
+        margin-right: 350px; /* Space for fixed sidebar */
+        min-width: 0;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        transition: margin-right 0.3s ease;
+        height: calc(100vh - 56px); /* Fixed height */
+        overflow-y: auto; /* Enable scrolling */
+    }
+    .udemy-main.full-width {
+        margin-right: 0;
+    }
+    .udemy-sidebar {
+        position: fixed;
+        top: 56px;
+        right: 0;
+        bottom: 0;
+        width: 350px;
+        background-color: #fff;
+        border-left: 1px solid #d1d7dc;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, width 0.3s ease;
+        z-index: 1000;
+    }
+    .udemy-sidebar.collapsed {
+        transform: translateX(100%);
+        width: 350px; /* Keep width but hide via transform/visibility */
+        visibility: hidden;
+    }
+    
+    /* Sidebar Headers */
+    .sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid #d1d7dc;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1c1d1f;
+        background-color: #fff;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .btn-close-sidebar {
+        background: none;
+        border: none;
+        color: #1c1d1f;
+        padding: 4px;
+        font-size: 1.2rem;
+    }
+    
+    /* Accordion styles */
+    .syllabus-accordion .accordion-item {
+        border: none;
+        border-bottom: 1px solid #d1d7dc;
+        border-radius: 0;
+    }
+    .syllabus-accordion .accordion-button {
+        background-color: #f7f9fa;
+        color: #1c1d1f;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 16px 24px;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+    .syllabus-accordion .accordion-button:not(.collapsed) {
+        background-color: #f7f9fa;
+        color: #1c1d1f;
+    }
+    .syllabus-accordion .accordion-button::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%231c1d1f'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    }
+    .chapter-stats {
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: #6a6f73;
+        display: block;
+        margin-top: 4px;
+    }
+    .syllabus-accordion .accordion-body {
+        padding: 0;
+        background-color: #fff;
+    }
+    
+    /* Lesson items */
+    .sidebar-lesson {
+        display: flex;
+        padding: 12px 24px;
+        text-decoration: none;
+        color: #1c1d1f;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .sidebar-lesson:last-child {
+        border-bottom: none;
+    }
+    .sidebar-lesson:hover {
+        background-color: #f7f9fa;
+        color: #1c1d1f;
+    }
+    .sidebar-lesson.active {
+        background-color: #e6f2f5;
+    }
+    
+    .lesson-meta {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    .lesson-title {
+        font-weight: 400;
+        margin-bottom: 4px;
+    }
+    .sidebar-lesson.active .lesson-title {
+        font-weight: 700;
+    }
+    .lesson-duration {
+        font-size: 0.75rem;
+        color: #6a6f73;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .lesson-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 1px solid #1c1d1f;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 16px;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+    .lesson-checkbox.completed {
+        background-color: #1c1d1f;
+        color: #fff;
+    }
+    .lesson-checkbox.completed i {
+        font-size: 12px;
+    }
+    
+    /* Utilities */
+    .btn-round-dark {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-round-dark:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+    }
+    
+    /* Mobile tweaks */
+    @@media (max-width: 991px) {
+        .udemy-main {
+            margin-right: 0 !important;
+        }
+        .udemy-navbar-actions {
+            gap: 8px;
+        }
+        .udemy-sidebar {
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            right: 0;
+            width: 100% !important;
+            flex-basis: 100% !important;
+            min-width: 100% !important;
+            max-width: 400px;
+            z-index: 1040;
+            transform: translateX(100%);
+            border-left: 1px solid #d1d7dc;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .udemy-sidebar.mobile-open {
+            transform: translateX(0);
+        }
+        .udemy-sidebar.collapsed {
+            width: 100% !important;
+            flex-basis: 100% !important;
+            min-width: 100% !important;
+            transform: translateX(100%);
+            visibility: hidden; /* Still hide if explicitly collapsed even on mobile */
+        }
+    }
+</style>
+
+<!-- Top Navbar -->
+<div class="udemy-navbar">
+    <a asp-controller="Home" asp-action="Index" class="udemy-navbar-brand">
+        <img src="~/images/logo.png" alt="Logo" />
+        <span class="d-none d-md-inline">FirstAid+</span>
+    </a>
+    <div class="udemy-navbar-divider"></div>
+    <div class="udemy-navbar-title fw-bold">@course?.Title</div>
+    
+    <div class="udemy-navbar-actions flex-shrink-0">
+        <div class="d-none d-md-block text-end me-2">
+            <div style="font-size: 0.75rem; color: #d1d7dc;">Tiến độ của bạn</div>
+            <div id="courseProgressTextGlob" style="font-size: 0.85rem; font-weight: 700;">@(ViewBag.TotalCourseProgress ?? 0)%</div>
+        </div>
+        <button class="udemy-action-btn d-none d-sm-flex"><i class="bi bi-share"></i> Chia sẻ</button>
+        <button class="btn-round-dark shadow-sm" onclick="toggleSidebar()" title="Danh sách bài học" aria-label="Toggle Syllabus">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+    </div>
+</div>
+
+
+<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+<div class="udemy-layout">
+
+    <!-- Main Left Content -->
+    <div class="udemy-main" id="lessonMainWrapper">
+        <div id="lessonContainer" class="w-100">
+            <partial name="_LessonContent" model="Model" view-data="ViewData" />
+        </div>
+    </div>
+
+    <!-- Right Sidebar Content -->
+    <div class="udemy-sidebar" id="lessonSidebar">
+        <div class="sidebar-header">
+            <span>Nội dung khóa học</span>
+            <button class="btn-close-sidebar" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div class="accordion syllabus-accordion" id="syllabusAccordion">
+            @if (allSyllabus != null)
+            {
+                var unlockedLessons = (ViewBag.UnlockedLessons as HashSet<int>) ?? new HashSet<int>();
+                var completedLessons = (ViewBag.CompletedLessons as HashSet<int>) ?? new HashSet<int>();
+
+                for (int si = 0; si < allSyllabus.Count; si++)
+                {
+                    var syl = allSyllabus[si];
+                    int totalLessonsInSyllabus = syl.Lessons?.Count ?? 0;
+                    int totalDurationInSyllabus = syl.Lessons?.Sum(l => l.Duration) ?? 0;
+                    string headingId = $"heading{si}";
+                    string collapseId = $"collapse{si}";
+                    bool isExpanded = syl.Lessons?.Any(l => l.Id == currentLessonId) == true;
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="@headingId">
+                            <button class="accordion-button @(isExpanded ? "" : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="@(isExpanded ? "true" : "false")" aria-controls="@collapseId">
+                                <div class="w-100 pe-3">
+                                    Mục @(si + 1): @syl.Title
+                                    <span class="chapter-stats">@totalLessonsInSyllabus bài học | @totalDurationInSyllabus phút</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="@collapseId" class="accordion-collapse collapse @(isExpanded ? "show" : "")" aria-labelledby="@headingId">
+                            <div class="accordion-body">
+                                @if (syl.Lessons != null)
+                                {
+                                    @foreach (var les in syl.Lessons.OrderBy(l => l.OrderIndex))
+                                    {
+                                        bool isUnlocked = unlockedLessons.Contains(les.Id);
+                                        bool isCompleted = completedLessons.Contains(les.Id);
+                                        var lockStyle = isUnlocked ? "" : "opacity: 0.5; cursor: not-allowed; background-color: #f7f9fa;";
+                                        var urlAction = isUnlocked ? Url.Action("Lesson", new { id = les.Id }) : "#";
+                                        var linkClass = isUnlocked ? "ajax-link" : "locked-link";
+
+                                        <a href="@urlAction" class="sidebar-lesson @linkClass @(les.Id == currentLessonId ? "active" : "")" style="@lockStyle">
+                                            <div class="lesson-checkbox @(isCompleted ? "completed" : "")" id="chk-@les.Id">
+                                                @if (isCompleted)
+                                                {
+                                                    <i class="bi bi-check-lg text-white"></i>
+                                                }
+                                                else if (!isUnlocked)
+                                                {
+                                                    <i class="bi bi-lock-fill" style="font-size: 10px; color: #1c1d1f;"></i>
+                                                }
+                                            </div>
+                                            <div class="lesson-meta w-100">
+                                                <div class="lesson-title">@les.OrderIndex. @les.Title</div>
+                                                <div class="lesson-duration">
+                                                    @if (les.Type == "Video")
+                                                    {
+                                                        <i class="bi bi-play-circle-fill"></i>
+                                                    }
+                                                    else if (les.Type == "Exam")
+                                                    {
+                                                        <i class="bi bi-question-circle-fill"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-file-earmark-text-fill"></i>
+                                                    }
+                                                    @les.Duration phút
+                                                </div>
+                                            </div>
+                                        </a>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        function toggleSidebar() {
+            var sidebar = document.getElementById('lessonSidebar');
+            var main = document.getElementById('lessonMainWrapper');
+            var icon = document.querySelector('.btn-round-dark i');
+            
+            if (window.innerWidth < 992) {
+                if (sidebar.classList.contains('mobile-open')) {
+                    sidebar.classList.remove('mobile-open');
+                } else {
+                    sidebar.classList.add('mobile-open');
+                    sidebar.classList.remove('collapsed');
+                }
+            } else {
+                sidebar.classList.toggle('collapsed');
+                if (sidebar.classList.contains('collapsed')) {
+                    main.classList.add('full-width');
+                } else {
+                    main.classList.remove('full-width');
+                }
+            }
+            
+            // Toggle icon based on state
+            var isHidden = sidebar.classList.contains('collapsed') || (!sidebar.classList.contains('mobile-open') && window.innerWidth < 992);
+            if (icon) icon.className = isHidden ? 'bi bi-list fs-4' : 'bi bi-x-lg fs-4';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var sidebar = document.getElementById('lessonSidebar');
+            
+            // Initial state based on screen size
+            if (window.innerWidth < 992) {
+                sidebar.classList.remove('mobile-open');
+                sidebar.classList.remove('collapsed');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+
+            // Adjust sidebar on resize to prevent stuck states
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            });
+
+            // Handle AJAX links
+            document.addEventListener('click', function(e) {
+                var link = e.target.closest('.sidebar-lesson, .lesson-nav-btn.ajax-link');
+                if (!link) return;
+                
+                if (link.getAttribute('target') === '_blank') return;
+                
+                var url = link.getAttribute('href');
+                if (!url || url === '#' || url.startsWith('javascript:')) return;
+                
+                e.preventDefault();
+
+                // Update active state in sidebar
+                document.querySelectorAll('.sidebar-lesson').forEach(function(el) {
+                    el.classList.remove('active');
+                });
+                var activeLinks = document.querySelectorAll('.sidebar-lesson[href="' + url + '"]');
+                activeLinks.forEach(function(el) {
+                    el.classList.add('active');
+                    // Expand parent accordion
+                    var collapseDiv = el.closest('.accordion-collapse');
+                    if (collapseDiv && !collapseDiv.classList.contains('show')) {
+                        var bsCollapse = new bootstrap.Collapse(collapseDiv, { toggle: false });
+                        bsCollapse.show();
+                    }
+                });
+
+                // Push state to browser history
+                window.history.pushState({ path: url }, '', url);
+
+                // Fetch new content
+                fetchLessonContent(url);
+            });
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', function(e) {
+                if(e.state && e.state.path) {
+                    fetchLessonContent(e.state.path, false);
+                    
+                    // Update active state
+                    document.querySelectorAll('.sidebar-lesson').forEach(function(el) {
+                        el.classList.remove('active');
+                    });
+                    
+                    var activeLinks = document.querySelectorAll('.sidebar-lesson[href="' + e.state.path + '"]');
+                    activeLinks.forEach(function(el) {
+                        el.classList.add('active');
+                        var collapseDiv = el.closest('.accordion-collapse');
+                        if (collapseDiv && !collapseDiv.classList.contains('show')) {
+                            var bsCollapse = new bootstrap.Collapse(collapseDiv, { toggle: false });
+                            bsCollapse.show();
+                        }
+                    });
+                } else {
+                    location.reload();
+                }
+            });
+
+            function fetchLessonContent(url, scrollToTop = true) {
+                var container = document.getElementById('lessonContainer');
+                container.innerHTML = '<div class="d-flex w-100 justify-content-center align-items-center" style="height: 400px;"><div class="text-center"><div class="spinner-border text-dark" style="width: 3rem; height: 3rem;" role="status"></div><h5 class="mt-3 text-muted">Đang tải bài học...</h5></div></div>';
+
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(function(response) {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(function(html) {
+                    container.innerHTML = html;
+                    
+                    // Manually execute scripts in the newly loaded HTML
+                    var scripts = container.querySelectorAll('script');
+                    scripts.forEach(function(oldScript) {
+                        var newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(function(attr) {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+
+                    if(scrollToTop) {
+                        var wrapper = document.getElementById('lessonMainWrapper');
+                        if (wrapper) wrapper.scrollTop = 0;
+                    }
+                })
+                .catch(function(error) {
+                    container.innerHTML = '<div class="alert alert-danger m-5">Đã có lỗi xảy ra khi tải bài học.</div>';
+                });
+            }
+        });
+    </script>
+}

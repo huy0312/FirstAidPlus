@@ -1,0 +1,623 @@
+<style>
+    .auth-modal-content {
+        border-radius: 1.5rem;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    .modal-close-custom {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+        z-index: 10;
+        background-color: white;
+        opacity: 0.8;
+        border-radius: 50%;
+        padding: 0.6rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .modal-close-custom:hover {
+        opacity: 1;
+        transform: rotate(90deg) scale(1.1);
+        background-color: #f8f9fa;
+    }
+
+    .nav-auth {
+        background: #f1f5f9;
+        border-radius: 1rem;
+        padding: 0.35rem;
+    }
+    .nav-auth .nav-link {
+        border-radius: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0.75rem 1rem;
+    }
+    .nav-auth .nav-link:hover:not(.active) {
+        color: #0f172a;
+    }
+    .nav-auth .nav-link.active {
+        background-color: #fff;
+        color: #e11d48;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-floating-custom {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+    .form-floating-custom > .form-control {
+        border-radius: 1rem;
+        border: 2px solid #e2e8f0;
+        padding: 1rem 1.25rem;
+        height: auto;
+        font-size: 1rem;
+        background-color: #f8fafc;
+        transition: all 0.3s ease;
+        color: #0f172a;
+    }
+    .form-floating-custom > .form-control:focus {
+        background-color: #fff;
+        border-color: #e11d48;
+        box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.1);
+    }
+    .form-floating-custom > .form-control::placeholder {
+        color: transparent;
+    }
+    .form-floating-custom > label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        padding: 1rem 1.25rem;
+        pointer-events: none;
+        border: 2px solid transparent;
+        transform-origin: 0 0;
+        transition: opacity .1s ease-in-out,transform .1s ease-in-out;
+        color: #64748b;
+        font-weight: 500;
+    }
+    .form-floating-custom > .form-control:focus ~ label,
+    .form-floating-custom > .form-control:not(:placeholder-shown) ~ label {
+        opacity: 0.8;
+        transform: scale(0.85) translateY(-2.2rem) translateX(0.5rem);
+        background: #fff;
+        height: auto;
+        padding: 0 0.5rem;
+        border-radius: 0.25rem;
+        color: #e11d48;
+    }
+
+    .btn-auth-submit {
+        border-radius: 1rem;
+        padding: 0.875rem 1.5rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 14px 0 rgba(225, 29, 72, 0.39);
+    }
+    .btn-auth-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(225, 29, 72, 0.5);
+        color: white;
+    }
+
+    .social-divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 2rem 0;
+    }
+    .social-divider::before, .social-divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .social-divider:not(:empty)::before { margin-right: 1em; }
+    .social-divider:not(:empty)::after { margin-left: 1em; }
+
+    .social-btn {
+        border-radius: 1rem;
+        padding: 0.875rem;
+        font-weight: 600;
+        color: #334155;
+        background-color: #fff;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+    .social-btn:hover {
+        background-color: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+    }
+    
+    .expert-toggle-card {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .expert-toggle-card:hover {
+        border-color: #cbd5e1;
+    }
+    .expert-toggle-card.active {
+        background: #fff1f2;
+        border-color: #fda4af;
+    }
+
+    .file-upload-box {
+        border: 2px dashed #cbd5e1;
+        border-radius: 1rem;
+        padding: 2rem 1rem;
+        text-align: center;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .file-upload-box:hover {
+        border-color: #94a3b8;
+        background: #f1f5f9;
+    }
+    .file-upload-box.has-file {
+        border-style: solid;
+        border-color: #e11d48;
+        background: #fff1f2;
+    }
+    .file-upload-box input[type="file"] {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0; cursor: pointer;
+    }
+
+    .auth-illustration {
+        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        padding: 3rem;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        height: 100%;
+    }
+
+    /* Horizontal Expansion Transitions */
+    .transition-custom {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-dialog {
+        transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .expert-fields-horizontal {
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .expert-fields-horizontal.show-horizontal {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .expert-profile-container {
+        border-radius: 1.25rem;
+        border: 2px solid #e2e8f0;
+        background: #fff;
+        height: 100%;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .expert-profile-header {
+        background: linear-gradient(to right, #f8fafc, #f1f5f9);
+        padding: 1.5rem;
+        border-bottom: 2px solid #e2e8f0;
+        border-radius: 1.25rem 1.25rem 0 0;
+    }
+
+    .expert-profile-body {
+        padding: 2rem 1.5rem;
+        flex-grow: 1;
+    }
+
+    .profile-field-group {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .profile-field-group i {
+        position: absolute;
+        left: 1.25rem;
+        top: 1.25rem;
+        color: #94a3b8;
+        font-size: 1.1rem;
+        z-index: 5;
+    }
+
+    .profile-field-group .form-control {
+        padding-left: 3rem;
+    }
+
+    .profile-field-group label {
+        left: 3rem;
+    }
+
+    .profile-field-group .form-control:focus ~ label,
+    .profile-field-group .form-control:not(:placeholder-shown) ~ label {
+        transform: scale(0.85) translateY(-2.2rem) translateX(-1.5rem);
+    }
+</style>
+
+<div class="modal fade" id="loginRegisterModal" tabindex="-1" aria-labelledby="loginRegisterModalLabel" aria-hidden="true" style="backdrop-filter: blur(8px);">
+    <div class="modal-dialog modal-dialog-centered modal-lg transition-custom" id="authModalDialog">
+        <div class="modal-content auth-modal-content">
+            <button type="button" class="btn-close modal-close-custom" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="row g-0">
+                <!-- Left Side Banner -->
+                <div class="col-md-5 d-none d-md-block transition-custom" id="leftBannerCol">
+                    <div class="auth-illustration">
+                        <div class="bg-white p-3 rounded-circle mb-4 shadow" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-heartbeat fs-1 text-danger"></i>
+                        </div>
+                        <h2 class="fw-bold mb-3">FirstAidPlus</h2>
+                        <p class="fs-5 opacity-75 mb-4">Trang bị kiến thức<br/>Bảo vệ sự sống</p>
+                        <ul class="list-unstyled text-start w-100 px-3 mt-4" style="line-height: 2;">
+                            <li><i class="fas fa-check-circle me-2 opacity-75"></i> Chứng chỉ chuẩn quốc tế</li>
+                            <li><i class="fas fa-check-circle me-2 opacity-75"></i> Chuyên gia y tế hàng đầu</li>
+                            <li><i class="fas fa-check-circle me-2 opacity-75"></i> Thực hành trực quan</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right Side Form -->
+                <div class="col-md-7 transition-custom" id="rightFormCol">
+                    <div class="p-4 p-sm-5 h-100 d-flex flex-column">
+                        <ul class="nav nav-pills nav-auth nav-fill mb-4" id="loginRegisterTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-panel" type="button" role="tab" onclick="resetRegisterLayout()">Đăng nhập</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-panel" type="button" role="tab" onclick="applyRegisterLayout()">Đăng ký mới</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content flex-grow-1" id="loginRegisterTabContent">
+                            <!-- LOGIN TAB -->
+                            <div class="tab-pane fade show active" id="login-panel" role="tabpanel">
+                                <div class="text-center mb-4">
+                                    <h4 class="fw-bold text-slate-800">Chào mừng trở lại!</h4>
+                                    <p class="text-muted small">Vui lòng đăng nhập để tiếp tục học tập</p>
+                                </div>
+
+                                <form id="loginForm" onsubmit="handleLogin(event)">
+                                    <input type="hidden" id="login-return-url" name="returnUrl" value="" />
+                                    <div id="login-error" class="alert alert-danger d-none small py-2 fw-medium rounded-3 border-0"></div>
+                                    
+                                    <div class="form-floating-custom">
+                                        <input type="text" class="form-control" id="login-username" name="username" placeholder="name@example.com" required>
+                                        <label for="login-username"><i class="fas fa-envelope me-2 opacity-50"></i>Email / Tên đăng nhập</label>
+                                    </div>
+
+                                    <div class="form-floating-custom mb-3">
+                                        <input type="password" class="form-control" id="login-password" name="password" placeholder="********" required>
+                                        <label for="login-password"><i class="fas fa-lock me-2 opacity-50"></i>Mật khẩu</label>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-4 px-1">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input border-secondary" id="rememberMe">
+                                            <label class="form-check-label small text-secondary fw-medium" for="rememberMe">Ghi nhớ tôi</label>
+                                        </div>
+                                        <a asp-controller="Account" asp-action="ForgotPassword" class="small fw-semibold text-danger text-decoration-none hover-underline">Quên mật khẩu?</a>
+                                    </div>
+
+                                    <div class="d-grid mb-4">
+                                        <button type="submit" class="btn btn-auth-submit" id="loginBtn">Đăng nhập</button>
+                                    </div>
+                                </form>
+
+                                <div class="social-divider">Hoặc tiếp tục với</div>
+
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <a asp-controller="Account" asp-action="GoogleLogin" class="social-btn w-100">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="18" height="18"> Google
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <button class="social-btn w-100">
+                                            <i class="fab fa-facebook text-primary fs-5"></i> Facebook
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- REGISTER TAB -->
+                            <div class="tab-pane fade h-100 w-100" id="register-panel" role="tabpanel">
+                                <form id="registerForm" onsubmit="handleRegister(event)" enctype="multipart/form-data" class="h-100 d-flex flex-column">
+                                    <div class="text-center mb-4" id="registerHeader">
+                                        <h4 class="fw-bold text-slate-800">Tạo tài khoản mới</h4>
+                                        <p class="text-muted small">Tham gia cùng hàng ngàn học viên khác</p>
+                                    </div>
+
+                                    <div id="register-error" class="alert alert-danger d-none small py-2 fw-medium rounded-3 border-0"></div>
+                                    <input type="hidden" id="reg-username" name="Username">
+                                    <input type="hidden" id="reg-confirm-password" name="ConfirmPassword">
+
+                                    <div class="row flex-grow-1" id="registerFormRow">
+                                        <!-- Standard INFO -->
+                                        <div class="col-12 transition-custom" id="standardFieldsCol">
+                                            <div class="form-floating-custom">
+                                                <input type="text" class="form-control" id="reg-fullname" name="FullName" placeholder="Họ và tên" required>
+                                                <label for="reg-fullname"><i class="fas fa-user me-2 opacity-50"></i>Họ và tên</label>
+                                            </div>
+
+                                            <div class="form-floating-custom">
+                                                <input type="email" class="form-control" id="reg-email" name="Email" placeholder="Email" required>
+                                                <label for="reg-email"><i class="fas fa-envelope me-2 opacity-50"></i>Địa chỉ Email</label>
+                                            </div>
+
+                                            <div class="form-floating-custom mb-1">
+                                                <input type="password" class="form-control" id="reg-password" name="Password" placeholder="Mật khẩu" required>
+                                                <label for="reg-password"><i class="fas fa-lock me-2 opacity-50"></i>Mật khẩu</label>
+                                            </div>
+                                            <div class="text-secondary mb-4 px-2" style="font-size: 0.75rem;"><i class="fas fa-info-circle me-1"></i>Ít nhất 8 ký tự: hoa, thường, số</div>
+
+                                            <!-- Expert Toggle -->
+                                            <div class="expert-toggle-card mb-4" id="expertToggleCard">
+                                                <div class="form-check form-switch d-flex align-items-center m-0 p-0 justify-content-between w-100" style="cursor: pointer;" onclick="document.getElementById('expertToggle').click();">
+                                                    <div>
+                                                        <div class="fw-bold text-danger mb-1"><i class="fas fa-user-md me-2"></i>Chuyên gia Y tế</div>
+                                                        <div class="text-muted" style="font-size: 0.75rem; line-height: 1.2;">Bạn là chuyên gia? Nhấn bật để hiển thị hồ sơ.</div>
+                                                    </div>
+                                                    <input class="form-check-input fs-4 ms-2 mt-0" type="checkbox" role="switch" id="expertToggle" name="IsExpert" value="true" onchange="toggleExpertHorizontal(event)" onclick="event.stopPropagation();">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                         <!-- Expert INFO Redesigned -->
+                                         <div class="col-lg-6 expert-fields-horizontal" id="expertFieldsCol" style="display: none;">
+                                             <div class="expert-profile-container">
+                                                 <div class="expert-profile-header">
+                                                     <div class="d-flex align-items-center">
+                                                         <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-4 me-3">
+                                                             <i class="fas fa-id-card-alt fs-4"></i>
+                                                         </div>
+                                                         <div>
+                                                             <h6 class="fw-bold text-slate-800 mb-1">Hồ sơ chuyên môn</h6>
+                                                             <p class="text-muted mb-0 small" style="font-size: 0.7rem;">Thông tin này sẽ được hiển thị công khai</p>
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                                 
+                                                 <div class="expert-profile-body">
+                                                     <div class="profile-field-group form-floating-custom mb-3">
+                                                         <i class="fas fa-user-md"></i>
+                                                         <input type="text" class="form-control" id="reg-expert-title" name="ExpertTitle" placeholder="Học hàm/Học vị (VD: ThS. BS)">
+                                                         <label for="reg-expert-title">Học hàm/Học vị (VD: ThS. BS)</label>
+                                                     </div>
+
+                                                     <div class="profile-field-group form-floating-custom mb-3">
+                                                         <i class="fas fa-briefcase"></i>
+                                                         <input type="number" class="form-control" id="reg-experience" name="ExperienceYears" min="0" value="" placeholder="Năm kinh nghiệm">
+                                                         <label for="reg-experience">Năm kinh nghiệm</label>
+                                                     </div>
+
+                                                     <div class="profile-field-group form-floating-custom mb-3">
+                                                         <i class="fas fa-building"></i>
+                                                         <input type="text" class="form-control" id="reg-workplace" name="Workplace" placeholder="Nơi công tác hiện tại">
+                                                         <label for="reg-workplace">Nơi công tác hiện tại</label>
+                                                     </div>
+
+                                                     <div class="mt-4">
+                                                         <div class="file-upload-box" id="uploadBox" onclick="document.getElementById('reg-certificate').click();">
+                                                             <input type="file" id="reg-certificate" name="CertificateFile" accept="image/png, image/jpeg, image/jpg" onchange="updateFileName(this)">
+                                                             <i class="fas fa-file-medical-alt fs-2 text-danger mb-2"></i>
+                                                             <h6 class="fw-bold mb-1">Tải lên chứng chỉ chuyên môn</h6>
+                                                             <p class="text-muted small mb-0" id="fileNameText">Ảnh JPG, PNG.</p>
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                        
+                                        <!-- Actions -->
+                                        <div class="col-12 mt-3 transition-custom" id="bottomActionsCol">
+                                            <div class="form-check mb-4 px-2">
+                                                <input class="form-check-input border-secondary" type="checkbox" id="termsCheck" required>
+                                                <label class="form-check-label small text-secondary fw-medium" for="termsCheck">
+                                                    Đồng ý với <a href="#" class="text-danger">Điều khoản</a> & <a href="#" class="text-danger">Bảo mật</a>
+                                                </label>
+                                            </div>
+
+                                            <div class="d-grid">
+                                                <button type="submit" class="btn btn-auth-submit py-3 shadow-lg" id="registerBtn">Đăng ký tài khoản</button>
+                                            </div>
+                                            
+                                            <div class="social-divider mt-4 mb-3" id="registerSocialDiv">Đăng ký nhanh</div>
+                                            <div class="d-grid" id="registerSocialBtn">
+                                                 <a asp-controller="Account" asp-action="GoogleLogin" class="social-btn">
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="18" height="18"> Tiếp tục với Google
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleExpertHorizontal(e) {
+        const dialog = document.getElementById('authModalDialog');
+        const leftBanner = document.getElementById('leftBannerCol');
+        const rightForm = document.getElementById('rightFormCol');
+        const standardCol = document.getElementById('standardFieldsCol');
+        const expertCol = document.getElementById('expertFieldsCol');
+        const card = document.getElementById('expertToggleCard');
+        const header = document.getElementById('registerHeader');
+
+        if (e.target.checked) {
+            card.classList.add('active');
+            
+            // Expand modal
+            dialog.classList.remove('modal-lg');
+            dialog.classList.add('modal-xl');
+            
+            // Adjust main grid. Banner stays col-md-4
+            leftBanner.className = "col-lg-4 d-none d-lg-block transition-custom";
+            rightForm.className = "col-lg-8 transition-custom";
+
+            // Adjust form grid. Divide into 2 columns.
+            standardCol.className = "col-lg-6 transition-custom";
+            expertCol.style.display = "block";
+            header.style.display = "none";
+            
+            setTimeout(() => {
+                expertCol.classList.add('show-horizontal');
+            }, 50);
+        } else {
+            card.classList.remove('active');
+            
+            // Revert modal
+            dialog.classList.add('modal-lg');
+            dialog.classList.remove('modal-xl');
+
+            // Revert main grid
+            leftBanner.className = "col-md-5 d-none d-md-block transition-custom";
+            rightForm.className = "col-md-7 transition-custom";
+
+            // Revert form grid
+            standardCol.className = "col-12 transition-custom";
+            expertCol.classList.remove('show-horizontal');
+            header.style.display = "block";
+            
+            setTimeout(() => {
+                if(!document.getElementById('expertToggle').checked) {
+                    expertCol.style.display = "none";
+                }
+            }, 400);
+        }
+    }
+
+    // Ensures reset logic triggers when switching tabs 
+    function resetRegisterLayout() {
+        const toggle = document.getElementById('expertToggle');
+        if (toggle && toggle.checked) {
+             toggle.checked = false;
+             toggleExpertHorizontal({ target: toggle });
+        }
+    }
+    
+    function applyRegisterLayout() {
+         const toggle = document.getElementById('expertToggle');
+         if (toggle && toggle.checked) {
+              toggleExpertHorizontal({ target: toggle });
+         }
+    }
+
+    function updateFileName(input) {
+        const box = document.getElementById('uploadBox');
+        const text = document.getElementById('fileNameText');
+        if (input.files && input.files[0]) {
+            box.classList.add('has-file');
+            text.innerHTML = '<span class="text-danger fw-bold"><i class="fas fa-file-image me-1"></i> ' + input.files[0].name + '</span>';
+        } else {
+            box.classList.remove('has-file');
+            text.innerHTML = 'Ảnh JPG, PNG.';
+        }
+    }
+
+    async function handleLogin(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const errorDiv = document.getElementById('login-error');
+        const btn = document.getElementById('loginBtn');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+        
+        try {
+            const response = await fetch('@Url.Action("Login", "Account")', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                if (result.redirectUrl) window.location.href = result.redirectUrl;
+                else window.location.reload();
+            } else {
+                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> ' + (result.message || "Đăng nhập thất bại");
+                errorDiv.classList.remove('d-none');
+                btn.disabled = false;
+                btn.innerHTML = 'Đăng nhập';
+            }
+        } catch (error) {
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Đã có lỗi xảy ra.';
+            errorDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = 'Đăng nhập';
+        }
+    }
+
+    async function handleRegister(event) {
+        event.preventDefault();
+        const form = event.target;
+        const errorDiv = document.getElementById('register-error');
+        const submitBtn = document.getElementById('registerBtn');
+        
+        document.getElementById('reg-username').value = document.getElementById('reg-email').value;
+        document.getElementById('reg-confirm-password').value = document.getElementById('reg-password').value;
+        
+        const formData = new FormData(form);
+        
+        errorDiv.classList.add('d-none');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+        
+        try {
+            const response = await fetch('@Url.Action("Register", "Account")', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                submitBtn.innerHTML = '<i class="fas fa-check text-white me-2"></i>Thành công!';
+                setTimeout(() => window.location.href = result.redirectUrl, 1000);
+            } else {
+                errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> ' + (result.message || "Đăng ký thất bại");
+                errorDiv.classList.remove('d-none');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Đăng ký tài khoản';
+            }
+        } catch (error) {
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Có lỗi xảy ra. Kiểm tra kết nối.';
+            errorDiv.classList.remove('d-none');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Đăng ký tài khoản';
+        }
+    }
+</script>
