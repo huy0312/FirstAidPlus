@@ -1,12 +1,13 @@
 # Stage 1: Build Frontend (React/Vite)
 FROM node:20 AS frontend-build
-WORKDIR /src/QAApp
-# Copy package files first for better caching
-COPY ["FirstAidPlus/QAApp/package.json", "FirstAidPlus/QAApp/package-lock.json*", "./"]
+WORKDIR /src
+# Copy package files
+COPY FirstAidPlus/QAApp/package.json FirstAidPlus/QAApp/package-lock.json* ./FirstAidPlus/QAApp/
+WORKDIR /src/FirstAidPlus/QAApp
 RUN npm install
-# Copy the rest of the frontend source code
+# Copy the rest
 COPY FirstAidPlus/QAApp/ .
-# Build the frontend (outputs to /src/FirstAidPlus/wwwroot/react/qa based on vite.config.js)
+# Build the frontend (outputs to /src/FirstAidPlus/wwwroot/react/qa)
 RUN npm run build
 
 # Stage 2: Build Backend (.NET)
