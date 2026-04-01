@@ -79,6 +79,13 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<FirstAidPlus.Data.AppDbContext>();
+        
+        // Fix: Manually ensure the Category column exists to stop the crash immediately
+        // This is necessary because the EF Migration history is out of sync with the existing DB tables
+        try {
+            context.Database.ExecuteSqlRaw("ALTER TABLE \"courses\" ADD COLUMN IF NOT EXISTS \"category\" TEXT;");
+        } catch { /* Ignore if it fails, the next step might catch it or it might already exist */ }
+
         context.Database.Migrate();
     }
     catch (Exception ex)

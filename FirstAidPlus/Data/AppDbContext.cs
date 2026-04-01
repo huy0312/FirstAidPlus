@@ -95,6 +95,7 @@ namespace FirstAidPlus.Data
                 entity.Property(e => e.IsActive).HasColumnName("is_active");
                 entity.Property(e => e.IsPopular).HasColumnName("is_popular");
                 entity.Property(e => e.InstructorId).HasColumnName("instructor_id");
+                entity.Property(e => e.Category).HasColumnName("category");
             });
 
             // Removed Instructors and Instructor_Qualifications maps
