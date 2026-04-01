@@ -23,24 +23,41 @@ namespace FirstAidPlus.Services
             var returnUrl = $"{domain}/Subscription/PayOSCallback";
             var cancelUrl = $"{domain}/Subscription/Index";
 
+            // Safety check for amount
+            int amount = (int)transaction.Amount;
+            if (amount < 2000) amount = 2000;
+
             PaymentLinkItem item = new PaymentLinkItem {
-                Name = transaction.Plan?.Name ?? "FirstAidPus Subscription",
+                Name = (transaction.Plan?.Name ?? "FirstAidSub").Substring(0, Math.Min(20, (transaction.Plan?.Name ?? "FirstAidSub").Length)),
                 Quantity = 1,
-                Price = (int)transaction.Amount
+                Price = amount
             };
             List<PaymentLinkItem> items = new List<PaymentLinkItem> { item };
 
+            // PayOS OrderCode MUST be a number and MUST be unique. 
+            // We use Timestamp + ID to ensure uniqueness across tests.
+            string uniquePrefix = DateTime.Now.ToString("HHmmss");
+            long uniqueOrderCode = long.Parse(uniquePrefix + transaction.Id);
+
             CreatePaymentLinkRequest paymentData = new CreatePaymentLinkRequest {
-                OrderCode = transaction.Id,
-                Amount = (int)transaction.Amount,
-                Description = $"Thanh toan don {transaction.Id}",
+                OrderCode = uniqueOrderCode,
+                Amount = amount,
+                Description = $"HD{transaction.Id}",
                 Items = items,
                 CancelUrl = cancelUrl,
                 ReturnUrl = returnUrl
             };
 
-            CreatePaymentLinkResponse createPayment = await _payOS.PaymentRequests.CreateAsync(paymentData);
-            return createPayment;
+            try 
+            {
+                CreatePaymentLinkResponse createPayment = await _payOS.PaymentRequests.CreateAsync(paymentData);
+                return createPayment;
+            }
+            catch (Exception ex)
+            {
+                // Capture detailed error for debugging
+                throw new Exception($"PayOS Create Error: {ex.Message}. Request Data: {Newtonsoft.Json.JsonConvert.SerializeObject(paymentData)}");
+            }
         }
 
         public async Task<WebhookData> VerifyPaymentWebhookData(Webhook webhookBody)

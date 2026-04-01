@@ -30,7 +30,13 @@ builder.Services.AddSingleton<FirstAidPlus.Services.IAIService, FirstAidPlus.Ser
 var payOsClientId = builder.Configuration["PayOS:ClientId"];
 var payOsApiKey = builder.Configuration["PayOS:ApiKey"];
 var payOsChecksumKey = builder.Configuration["PayOS:ChecksumKey"];
-PayOS.PayOSClient payOS = new PayOS.PayOSClient(payOsClientId, payOsApiKey, payOsChecksumKey);
+
+if (string.IsNullOrEmpty(payOsClientId) || payOsClientId.Contains("YOUR_"))
+{
+    Console.WriteLine("WARNING: PayOS ClientId is missing or has placeholder value!");
+}
+
+PayOS.PayOSClient payOS = new PayOS.PayOSClient(payOsClientId ?? "MISSING", payOsApiKey ?? "MISSING", payOsChecksumKey ?? "MISSING");
 builder.Services.AddSingleton(payOS);
 builder.Services.AddScoped<FirstAidPlus.Services.IPayOSService, FirstAidPlus.Services.PayOSService>();
 

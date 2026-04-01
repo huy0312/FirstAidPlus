@@ -82,17 +82,18 @@ namespace FirstAidPlus.Controllers
             }
             else if (paymentMethod == "PayOS")
             {
-                _context.Transactions.Add(transaction);
-                await _context.SaveChangesAsync();
-                
                 try 
                 {
+                    _context.Transactions.Add(transaction);
+                    await _context.SaveChangesAsync();
+                    
                     var result = await _payOSService.CreatePaymentLink(HttpContext, transaction);
                     return Redirect(result.CheckoutUrl);
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = "Lỗi kết nối PayOS: " + ex.Message;
+                    // Catch the detailed error from PayOSService
+                    TempData["ErrorMessage"] = "Lỗi tạo link PayOS: " + (ex.InnerException?.Message ?? ex.Message);
                     return RedirectToAction("Index");
                 }
             }

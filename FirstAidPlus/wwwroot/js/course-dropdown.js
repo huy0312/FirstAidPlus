@@ -6,15 +6,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (searchInput) {
         searchInput.addEventListener('input', function (e) {
             const term = e.target.value.toLowerCase().trim();
+            console.log('Searching for:', term);
             let visibleCount = 0;
 
             courseItems.forEach(item => {
                 const title = item.textContent.toLowerCase();
                 if (title.includes(term)) {
-                    item.classList.remove('d-none');
+                    item.style.display = 'block';
                     visibleCount++;
                 } else {
-                    item.classList.add('d-none');
+                    item.style.display = 'none';
                 }
             });
 

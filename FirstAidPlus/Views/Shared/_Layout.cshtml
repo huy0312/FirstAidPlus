@@ -51,17 +51,24 @@
                                 <li class="course-divider"><hr class="dropdown-divider"></li>
                                 @{
                                     var allCourses = await CourseRepository.GetAllCoursesAsync();
-                                    var groupedCourses = allCourses.GroupBy(c => c.Category ?? "Chung").OrderBy(g => g.Key);
+                                    var courseList = allCourses.ToList();
+                                    var groupedCourses = courseList.GroupBy(c => c.Category ?? "Chung").OrderBy(g => g.Key);
+                                    
+                                    if (!courseList.Any())
+                                    {
+                                        <li class="px-3 py-2 text-muted small">Chưa có khóa học nào.</li>
+                                    }
+
                                     foreach(var group in groupedCourses)
                                     {
-                                        <li class="dropdown-header fw-bold text-uppercase py-2 px-3 bg-light category-header" style="font-size: 0.75rem; letter-spacing: 1px; color: #666;" data-category="@group.Key">
-                                            @group.Key
+                                        <li class="dropdown-header fw-bold text-uppercase py-2 px-3 bg-light category-header border-top border-bottom" style="font-size: 0.7rem; letter-spacing: 0.5px; color: #dc3545;" data-category="@group.Key">
+                                            @group.Key (@group.Count())
                                         </li>
                                         foreach(var course in group)
                                         {
                                             <li class="course-item" data-category="@group.Key">
                                                 <a class="dropdown-item py-2 ps-4" asp-controller="Course" asp-action="Details" asp-route-id="@course.Id">
-                                                    @course.Title
+                                                    <i class="fas fa-book-medical me-2 text-muted small"></i> @course.Title
                                                 </a>
                                             </li>
                                         }
@@ -120,7 +127,7 @@
                             @if (User.Identity.IsAuthenticated)
                             {
                                 <!-- Notification Bell -->
-                                <div class="dropdown me-1">
+                                <div class="dropdown">
                                     <a href="#" class="text-dark text-decoration-none position-relative opacity-75 hover-opacity-100 transition-all" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
                                         <i class="far fa-bell fa-lg"></i>
                                         <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem; padding: 0.2rem 0.35rem;">0</span>
