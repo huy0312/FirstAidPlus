@@ -15,6 +15,7 @@ namespace FirstAidPlus.Models
         public string? TrainingImageUrl { get; set; }
         public bool IsActive { get; set; } = true;
         public bool IsPopular { get; set; }
+        public string? Category { get; set; }
 
         public int? InstructorId { get; set; }
         [ForeignKey("InstructorId")]

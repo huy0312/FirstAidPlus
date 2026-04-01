@@ -41,7 +41,7 @@ namespace FirstAidPlus.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Subscribe(int planId, string paymentMethod = "VnPay")
+        public async Task<IActionResult> Subscribe(int planId, string paymentMethod = "PayOS")
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId)) return RedirectToAction("Login", "Account");

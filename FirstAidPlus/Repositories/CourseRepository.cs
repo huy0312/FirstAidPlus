@@ -15,11 +15,31 @@ namespace FirstAidPlus.Repositories
 
         public async Task<IEnumerable<Course>> GetAllCoursesAsync()
         {
-            return await _context.Courses
+            var courses = await _context.Courses
                 .Include(c => c.Syllabus)
                     .ThenInclude(s => s.Lessons)
                 .Include(c => c.Feedbacks)
                 .ToListAsync();
+
+            // Auto-categorization for existing data
+            bool changed = false;
+            foreach (var course in courses.Where(c => string.IsNullOrEmpty(c.Category)))
+            {
+                if (course.Title.Contains("Cấp cứu")) course.Category = "Cấp cứu";
+                else if (course.Title.Contains("Huấn luyện")) course.Category = "Huấn luyện";
+                else if (course.Title.Contains("Xử trí")) course.Category = "Xử trí";
+                else if (course.Title.Contains("Kỹ năng")) course.Category = "Kỹ năng";
+                else if (course.Title.Contains("Phòng ngừa") || course.Title.Contains("Đột quỵ")) course.Category = "Y tế & Sức khỏe";
+                else course.Category = "Chung";
+                changed = true;
+            }
+
+            if (changed)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            return courses;
         }
 
         public async Task<(IEnumerable<Course> Courses, int TotalCount, int TotalPages)> GetCoursesAsync(string searchString, string category, string level, int pageNumber = 1, int pageSize = 9)
@@ -37,8 +57,7 @@ namespace FirstAidPlus.Repositories
 
             if (!string.IsNullOrEmpty(category) && category != "Tất cả danh mục")
             {
-                // Simple category filter using CertificateName for demonstration, as Category property is missing
-                courses = courses.Where(c => c.CertificateName != null && c.CertificateName.Contains(category));
+                courses = courses.Where(c => c.Category == category);
             }
 
             int totalCount = await courses.CountAsync();

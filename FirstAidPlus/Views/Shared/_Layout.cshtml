@@ -38,16 +38,36 @@
                             <a class="nav-link text-dark dropdown-toggle" href="#" id="coursesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-weight: 500;">
                                 Khóa học
                             </a>
-                            <ul class="dropdown-menu border-0 shadow-sm rounded-3 mt-2" aria-labelledby="coursesDropdown">
-                                <li><a class="dropdown-item fw-bold text-danger py-2" asp-controller="Course" asp-action="Index">Khám phá tất cả</a></li>
-                                <li><hr class="dropdown-divider"></li>
+                            <ul class="dropdown-menu border-0 shadow-lg rounded-3 mt-2 py-0" aria-labelledby="coursesDropdown" style="min-width: 320px; max-height: 500px; overflow-y: auto;">
+                                <div class="px-3 py-3 border-bottom bg-light sticky-top rounded-top">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white border-end-0 border-primary" style="color: #dc3545;">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                        <input type="text" id="courseMenuSearch" class="form-control border-start-0 border-primary shadow-none" placeholder="Tìm nhanh khóa học..." />
+                                    </div>
+                                </div>
+                                <li class="course-all-link mt-2"><a class="dropdown-item fw-bold text-danger py-2" asp-controller="Course" asp-action="Index">Khám phá tất cả khóa học</a></li>
+                                <li class="course-divider"><hr class="dropdown-divider"></li>
                                 @{
-                                    var courses = await CourseRepository.GetAllCoursesAsync();
-                                    foreach(var course in courses)
+                                    var allCourses = await CourseRepository.GetAllCoursesAsync();
+                                    var groupedCourses = allCourses.GroupBy(c => c.Category ?? "Chung").OrderBy(g => g.Key);
+                                    foreach(var group in groupedCourses)
                                     {
-                                        <li><a class="dropdown-item py-2" asp-controller="Course" asp-action="Index" asp-route-searchString="@course.Title">@course.Title</a></li>
+                                        <li class="dropdown-header fw-bold text-uppercase py-2 px-3 bg-light category-header" style="font-size: 0.75rem; letter-spacing: 1px; color: #666;" data-category="@group.Key">
+                                            @group.Key
+                                        </li>
+                                        foreach(var course in group)
+                                        {
+                                            <li class="course-item" data-category="@group.Key">
+                                                <a class="dropdown-item py-2 ps-4" asp-controller="Course" asp-action="Details" asp-route-id="@course.Id">
+                                                    @course.Title
+                                                </a>
+                                            </li>
+                                        }
                                     }
                                 }
+                                <li class="pb-2"></li>
                             </ul>
                         </li>
                     </ul>
@@ -306,6 +326,7 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
     <script src="~/js/notifications.js" asp-append-version="true"></script>
+    <script src="~/js/course-dropdown.js" asp-append-version="true"></script>
     <script>
         function switchLoginTab() {
             var loginTab = new bootstrap.Tab(document.querySelector('#login-tab'));
