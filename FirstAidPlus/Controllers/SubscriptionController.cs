@@ -192,7 +192,7 @@ namespace FirstAidPlus.Controllers
             }
         }
 
-        public async Task<IActionResult> PayOSCallback([FromQuery] string code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] int orderCode)
+        public async Task<IActionResult> PayOSCallback([FromQuery] string code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
         {
             if (cancel)
             {
@@ -202,8 +202,11 @@ namespace FirstAidPlus.Controllers
 
             if (status == "PAID")
             {
+                // Extract real transaction ID from PayOS orderCode (orderCode = 100000 + realId)
+                int realTransactionId = (int)(orderCode - 100000);
+
                 // Verify order and wait for webhook to update status, but we can optimistically show success or just verify here
-                var transaction = await _context.Transactions.Include(t => t.Plan).Include(t => t.User).FirstOrDefaultAsync(t => t.Id == orderCode);
+                var transaction = await _context.Transactions.Include(t => t.Plan).Include(t => t.User).FirstOrDefaultAsync(t => t.Id == realTransactionId);
                 
                 if (transaction != null)
                 {
@@ -246,8 +249,10 @@ namespace FirstAidPlus.Controllers
 
                 if (webhookData.Code == "00")
                 {
-                    var orderCode = webhookData.OrderCode;
-                    var transaction = await _context.Transactions.Include(t => t.Plan).Include(t => t.User).FirstOrDefaultAsync(t => t.Id == orderCode);
+                    long orderCode = webhookData.OrderCode;
+                    int realTransactionId = (int)(orderCode - 100000);
+
+                    var transaction = await _context.Transactions.Include(t => t.Plan).Include(t => t.User).FirstOrDefaultAsync(t => t.Id == realTransactionId);
 
                     if (transaction != null && transaction.Status != "Success")
                     {

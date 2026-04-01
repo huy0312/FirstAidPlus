@@ -35,9 +35,8 @@ namespace FirstAidPlus.Services
             List<PaymentLinkItem> items = new List<PaymentLinkItem> { item };
 
             // PayOS OrderCode MUST be a number and MUST be unique. 
-            // We use Timestamp + ID to ensure uniqueness across tests.
-            string uniquePrefix = DateTime.Now.ToString("HHmmss");
-            long uniqueOrderCode = long.Parse(uniquePrefix + transaction.Id);
+            // We use a fixed offset to ensure uniqueness across tests while keeping the ID traceable.
+            long uniqueOrderCode = 100000 + transaction.Id;
 
             CreatePaymentLinkRequest paymentData = new CreatePaymentLinkRequest {
                 OrderCode = uniqueOrderCode,

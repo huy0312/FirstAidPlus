@@ -27,6 +27,21 @@
                     <img src="~/images/logo.png" alt="FirstAid+ Logo" height="65" class="d-inline-block align-text-top" />
                 </a>
 
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show mb-0 py-2 small me-3 shadow-sm border-0" role="alert" style="z-index: 1060;">
+                        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mb-0 py-2 small me-3 shadow-sm border-0" role="alert" style="z-index: 1060;">
+                        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -261,6 +276,31 @@
 
     @if (ViewData["HideHeaderFooter"] as bool? != true)
     {
+        <header class="border-bottom bg-white sticky-top shadow-sm">
+            <div class="container py-2">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show mb-2 py-2 small" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mb-2 py-2 small" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show mb-2 py-2 small" role="alert">
+                        <i class="fas fa-info-circle me-2"></i> @TempData["InfoMessage"]
+                        <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+            </div>
+        </header>
         <footer class="bg-dark text-white pt-5 pb-3 position-relative">
         <div class="container">
             <div class="row g-4">
@@ -316,18 +356,6 @@
         </div>
         </footer>
     }
-
-    <!-- Chat Trigger Button (Bootstrap Offcanvas) -->
-        <button class="btn btn-danger rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4 d-flex align-items-center justify-content-center" 
-                type="button" 
-                data-bs-toggle="offcanvas" 
-                data-bs-target="#chatOffcanvas" 
-                aria-controls="chatOffcanvas"
-                style="width: 60px; height: 60px; z-index: 1050;">
-            <i class="far fa-comment-dots fa-2x"></i>
-        </button>
-
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

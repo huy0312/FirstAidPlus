@@ -93,11 +93,21 @@ using (var scope = app.Services.CreateScope())
         } catch { /* Ignore if it fails, the next step might catch it or it might already exist */ }
 
         context.Database.Migrate();
+        Console.WriteLine("Database migration completed successfully.");
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        if (ex.Message.Contains("already exists") || (ex.InnerException != null && ex.InnerException.Message.Contains("already exists")))
+        {
+            logger.LogWarning("Database relation already exists, skipping migration steps.");
+            Console.WriteLine("Warning: Database relation already exists. Skipping migration.");
+        }
+        else
+        {
+            logger.LogError(ex, "An error occurred while migrating the database.");
+            Console.WriteLine($"Error during migration: {ex.Message}");
+        }
     }
 }
 
