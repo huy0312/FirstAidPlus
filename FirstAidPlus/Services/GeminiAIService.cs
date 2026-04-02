@@ -26,7 +26,7 @@ namespace FirstAidPlus.Services
             if (string.IsNullOrEmpty(_apiKey) || _apiKey == "YOUR_GEMINI_API_KEY") 
                 return "Chưa cấu hình Gemini API Key. Vui lòng thêm 'Gemini__ApiKey' vào Render Environment Variables.";
  
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
  
             var requestBody = new
             {
