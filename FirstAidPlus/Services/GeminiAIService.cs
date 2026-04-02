@@ -110,7 +110,6 @@ namespace FirstAidPlus.Services
  
             // Using gemini-2.5-flash as requested
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_apiKey}";
 
             var systemPrompt = $@"Bạn là một chuyên gia kiểm duyệt chứng chỉ y tế tại Việt Nam. 
 Nhiệm vụ của bạn là kiểm tra xem hình ảnh được cung cấp CÓ PHẢI là 'CHỨNG CHỈ HÀNH NGHỀ KHÁM BỆNH, CHỮA BỆNH' hợp lệ tại Việt Nam hay không, VÀ đối chiếu với thông tin ứng viên cung cấp.
