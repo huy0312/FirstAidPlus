@@ -194,8 +194,11 @@ namespace FirstAidPlus.Controllers
 
         public async Task<IActionResult> PayOSCallback([FromQuery] string code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
         {
+            Console.WriteLine($"[PayOS Callback] Entered with Code: {code}, Status: {status}, OrderCode: {orderCode}");
+            
             if (cancel)
             {
+                Console.WriteLine($"[PayOS Callback] User cancelled payment for OrderCode: {orderCode}");
                 TempData["ErrorMessage"] = "Bạn đã hủy thanh toán PayOS.";
                 return RedirectToAction("Index");
             }
@@ -204,6 +207,7 @@ namespace FirstAidPlus.Controllers
             {
                 // Extract real transaction ID from PayOS orderCode (orderCode = 100000 + realId)
                 int realTransactionId = (int)(orderCode - 100000);
+                Console.WriteLine($"[PayOS Callback] SUCCESS detected. Real Transaction Id: {realTransactionId}");
 
                 // Verify order and wait for webhook to update status, but we can optimistically show success or just verify here
                 var transaction = await _context.Transactions.Include(t => t.Plan).Include(t => t.User).FirstOrDefaultAsync(t => t.Id == realTransactionId);
@@ -212,11 +216,12 @@ namespace FirstAidPlus.Controllers
                 {
                     if (transaction.Status != "Success")
                     {
-                         // Actually the Webhook will handle this better, but we can update here if it hasn't been handled yet
+                         // Update status here for immediate UX, Webhook will also try to do this
                          transaction.Status = "Success";
                          _context.Transactions.Update(transaction);
                          await ProcessSuccessfulSubscription(transaction);
                          await _context.SaveChangesAsync();
+                         Console.WriteLine($"[PayOS Callback] Transaction {transaction.Id} updated to Success and saved.");
                          
                          try
                          {
@@ -227,57 +232,93 @@ namespace FirstAidPlus.Controllers
                                      $"<h3>Cảm ơn bạn đã thanh toán qua PayOS!</h3><p>Gói: {transaction.Plan?.Name}</p><p>Giá: {transaction.Amount:N0} VND</p><p>Mã đơn hàng: {orderCode}</p>");
                              }
                          }
-                         catch (Exception) { /* log error */ }
+                         catch (Exception ex) { 
+                             Console.WriteLine($"[PayOS Callback] Email error: {ex.Message}");
+                         }
+                    }
+                    else {
+                        Console.WriteLine($"[PayOS Callback] Transaction {transaction.Id} was already marked as Success (likely by Webhook).");
                     }
                     TempData["SuccessMessage"] = "Thanh toán PayOS thành công!";
                     return RedirectToAction("PaymentSuccess");
                 }
+                else {
+                    Console.WriteLine($"[PayOS Callback] FATAL: Transaction with Id {realTransactionId} not found!");
+                }
             }
 
+            Console.WriteLine($"[PayOS Callback] End reached without success. Status was: {status}");
             TempData["ErrorMessage"] = "Có lỗi xảy ra trong quá trình thanh toán PayOS.";
             return RedirectToAction("Index");
         }
 
         [HttpPost("payos/webhook")]
         [AllowAnonymous]
+        [IgnoreAntiforgeryToken] // Critical for webhooks to work!
         public async Task<IActionResult> PayOSWebhook([FromBody] PayOS.Models.Webhooks.Webhook webhookBody)
         {
             try 
             {
+                Console.WriteLine($"[PayOS Webhook] Received webhook at {DateTime.Now}");
                 var webhookData = await _payOSService.VerifyPaymentWebhookData(webhookBody);
-                if (webhookData == null) return Ok(new { success = false, message = "Invalid webhook data" });
+                
+                if (webhookData == null) {
+                    Console.WriteLine("[PayOS Webhook] Invalid webhook verification failed.");
+                    return Ok(new { success = false, message = "Invalid webhook data" });
+                }
 
                 if (webhookData.Code == "00")
                 {
                     long orderCode = webhookData.OrderCode;
                     int realTransactionId = (int)(orderCode - 100000);
+                    Console.WriteLine($"[PayOS Webhook] Payment SUCCESS for OrderCode: {orderCode}, Real Id: {realTransactionId}");
 
                     var transaction = await _context.Transactions.Include(t => t.Plan).Include(t => t.User).FirstOrDefaultAsync(t => t.Id == realTransactionId);
 
-                    if (transaction != null && transaction.Status != "Success")
+                    if (transaction != null)
                     {
-                        transaction.Status = "Success";
-                        _context.Transactions.Update(transaction);
-                        await ProcessSuccessfulSubscription(transaction);
-                        await _context.SaveChangesAsync();
-                        
-                        try
+                        if (transaction.Status != "Success")
                         {
-                            string userEmail = transaction.User?.Email;
-                            if (!string.IsNullOrEmpty(userEmail))
+                            transaction.Status = "Success";
+                            _context.Transactions.Update(transaction);
+                            await ProcessSuccessfulSubscription(transaction);
+                            await _context.SaveChangesAsync();
+                            Console.WriteLine($"[PayOS Webhook] Database updated. Transaction {transaction.Id} marked as Success.");
+                            
+                            try
                             {
-                                await _emailService.SendEmailAsync(userEmail, "Xác nhận thanh toán thành công",
-                                    $"<h3>Cảm ơn bạn đã thanh toán qua PayOS!</h3><p>Gói: {transaction.Plan?.Name}</p><p>Giá: {transaction.Amount:N0} VND</p><p>Mã đơn hàng: {orderCode}</p>");
+                                string userEmail = transaction.User?.Email;
+                                if (!string.IsNullOrEmpty(userEmail))
+                                {
+                                    await _emailService.SendEmailAsync(userEmail, "Xác nhận thanh toán thành công",
+                                        $"<h3>Cảm ơn bạn đã thanh toán qua PayOS!</h3><p>Gói: {transaction.Plan?.Name}</p><p>Giá: {transaction.Amount:N0} VND</p><p>Mã đơn hàng: {orderCode}</p>");
+                                }
+                            }
+                            catch (Exception emailEx) { 
+                                Console.WriteLine($"[PayOS Webhook] Email error: {emailEx.Message}");
                             }
                         }
-                        catch (Exception) { /* log error */ }
+                        else {
+                            Console.WriteLine($"[PayOS Webhook] Transaction {transaction.Id} was already marked as Success.");
+                        }
                     }
+                    else {
+                        Console.WriteLine($"[PayOS Webhook] FATAL: Transaction with Id {realTransactionId} not found in DB!");
+                    }
+                }
+                else {
+                    Console.WriteLine($"[PayOS Webhook] Payment status NOT 00. Code: {webhookData.Code}");
                 }
 
                 return Ok(new { success = true });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[PayOS Webhook] EXCEPTION: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
                 return Ok(new { success = false, message = ex.Message });
             }
         }
