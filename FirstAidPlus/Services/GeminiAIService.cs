@@ -23,10 +23,11 @@ namespace FirstAidPlus.Services
 
         private async Task<string> GetReplyAsync(string userMessage)
         {
-            if (string.IsNullOrEmpty(_apiKey)) return "Chưa cấu hình API Key.";
-
+            if (string.IsNullOrEmpty(_apiKey) || _apiKey == "YOUR_GEMINI_API_KEY") 
+                return "Chưa cấu hình Gemini API Key. Vui lòng thêm 'Gemini__ApiKey' vào Render Environment Variables.";
+ 
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
-
+ 
             var requestBody = new
             {
                 contents = new[]
@@ -40,50 +41,58 @@ namespace FirstAidPlus.Services
                     }
                 }
             };
-
+ 
             var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
+ 
             try
             {
                 var response = await _httpClient.PostAsync(url, content);
                 var responseString = await response.Content.ReadAsStringAsync();
-
+ 
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Attempt to parse the error message from Google
+                    Console.WriteLine($"Gemini Error ({response.StatusCode}): {responseString}");
+                    
                     try {
                          var errorNode = JsonNode.Parse(responseString);
                          string errorMsg = errorNode?["error"]?["message"]?.ToString();
-                         
-                         if (responseString.Contains("Permission denied") || (errorMsg != null && errorMsg.Contains("Permission denied")))
-                         {
-                             return "Lỗi cấu hình: Vui lòng bật 'Generative Language API' trong Google Cloud Console.";
-                         }
-
                          if(!string.IsNullOrEmpty(errorMsg)) return $"Lỗi AI: {errorMsg}";
                     } catch {}
                     
-                    return $"Xin lỗi, sự cố kết nối AI ({response.StatusCode}). Check API Key.";
+                    return $"Sự cố kết nối AI ({response.StatusCode}). Vui lòng kiểm tra Gemini API Key trên Render.";
+                }
+ 
+                var root = JsonNode.Parse(responseString);
+                // Gemini API structure: candidates[0].content.parts[0].text
+                var candidates = root?["candidates"]?.AsArray();
+                if (candidates != null && candidates.Count > 0)
+                {
+                    var firstCandidate = candidates[0];
+                    var parts = firstCandidate?["content"]?["parts"]?.AsArray();
+                    if (parts != null && parts.Count > 0)
+                    {
+                        string text = parts[0]?["text"]?.ToString();
+                        if (!string.IsNullOrEmpty(text)) return text;
+                    }
                 }
 
-                var root = JsonNode.Parse(responseString);
-                string text = root?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString();
-                
-                return text ?? "Xin lỗi, tôi không hiểu câu hỏi.";
+                return "Xin lỗi, tôi không nhận được phản hồi hợp lệ từ hệ thống AI.";
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                return "Xin lỗi, hệ thống đang bận. Vui lòng thử lại sau.";
+                Console.WriteLine($"Gemini Exception: {ex.Message}");
+                return "Hệ thống AI đang bận. Vui lòng thử lại sau giây lát.";
             }
         }
-
+ 
         public async Task<(bool IsValid, string Message)> VerifyCertificateAsync(Microsoft.AspNetCore.Http.IFormFile file, string expectedName, int? expectedExperienceYears)
         {
-            if (string.IsNullOrEmpty(_apiKey)) return (false, "Chưa cấu hình API Key cho quá trình xác thực AI.");
+            if (string.IsNullOrEmpty(_apiKey) || _apiKey == "YOUR_GEMINI_API_KEY") 
+                return (false, "Chưa cấu hình Gemini API Key. Vui lòng thêm 'Gemini__ApiKey' vào Render.");
+            
             if (file == null || file.Length == 0) return (false, "Vui lòng tải lên ảnh chứng chỉ.");
-
+ 
             // Convert IFormFile to base64
             string base64Image;
             using (var ms = new MemoryStream())
@@ -92,15 +101,16 @@ namespace FirstAidPlus.Services
                 var imageBytes = ms.ToArray();
                 base64Image = Convert.ToBase64String(imageBytes);
             }
-
+ 
             var mimeType = file.ContentType;
             if (string.IsNullOrEmpty(mimeType) || !mimeType.StartsWith("image/"))
             {
                 return (false, "File không phải là định dạng hình ảnh hợp lệ.");
             }
-
+ 
             // Using gemini-2.5-flash as requested
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_apiKey}";
 
             var systemPrompt = $@"Bạn là một chuyên gia kiểm duyệt chứng chỉ y tế tại Việt Nam. 
 Nhiệm vụ của bạn là kiểm tra xem hình ảnh được cung cấp CÓ PHẢI là 'CHỨNG CHỈ HÀNH NGHỀ KHÁM BỆNH, CHỮA BỆNH' hợp lệ tại Việt Nam hay không, VÀ đối chiếu với thông tin ứng viên cung cấp.
