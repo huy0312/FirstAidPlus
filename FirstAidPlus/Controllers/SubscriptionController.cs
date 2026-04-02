@@ -319,9 +319,6 @@ namespace FirstAidPlus.Controllers
                 return StatusCode(500);
             }
         }
-                return Ok(new { success = false, message = ex.Message });
-            }
-        }
 
         public IActionResult PaymentSuccess()
         {
