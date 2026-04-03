@@ -27,6 +27,7 @@ builder.Services.AddTransient<FirstAidPlus.Services.IMoMoService, FirstAidPlus.S
 builder.Services.AddSingleton<FirstAidPlus.Services.IAIService, FirstAidPlus.Services.GeminiAIService>();
 builder.Services.AddScoped<FirstAidPlus.Services.ICloudinaryService, FirstAidPlus.Services.CloudinaryService>();
 builder.Services.AddHostedService<FirstAidPlus.Services.SubscriptionExpirationWorker>();
+builder.Services.AddHostedService<FirstAidPlus.Services.KeepAliveService>();
 
 // PayOS Initialization
 var payOsClientId = builder.Configuration["PayOS:ClientId"];

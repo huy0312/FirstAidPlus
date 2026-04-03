@@ -11,87 +11,117 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="icon" type="image/png" href="~/brand-logo.png?v=5">
     <link rel="apple-touch-icon" href="~/brand-logo.png?v=5">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; overflow-x: hidden; }
+        :root {
+            --expert-primary: #6366f1;
+            --expert-primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --sidebar-bg: #0f172a;
+            --sidebar-accent: rgba(99, 102, 241, 0.1);
+            --header-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; color: #1e293b; }
+        
         .sidebar {
             width: 260px;
             position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
-            background: white;
-            z-index: 1000;
-            border-right: 1px solid #eee;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--sidebar-bg);
+            z-index: 1050;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
+            border-right: none;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
         }
-        .sidebar.collapsed { width: 80px; }
-        .sidebar.collapsed .sidebar-brand span,
-        .sidebar.collapsed .nav-text,
-        .sidebar.collapsed .mt-auto .nav-text { display: none; }
         
-        .sidebar.collapsed .sidebar-brand { justify-content: center; }
-        .sidebar.collapsed .nav-link { justify-content: center; padding: 12px; }
-        .sidebar.collapsed .nav-link i { margin-right: 0; font-size: 1.2rem; }
-
-        .main-content {
-            margin-left: 260px;
-            padding: 20px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .main-content.collapsed { margin-left: 80px; }
-
-        .sidebar-header {
-            padding: 20px;
+        .brand-logo-container {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            min-height: 80px;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
         }
         
+        .brand-img {
+            height: 28px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .sidebar-brand:hover .brand-logo-container {
+            transform: rotate(5deg) scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            font-weight: 500;
+            padding: 12px 20px;
+            margin: 4px 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+            font-size: 0.9rem;
+        }
+        
+        .nav-link:hover {
+            color: #fff;
+            background-color: var(--sidebar-accent);
+            transform: translateX(4px);
+        }
+        
+        .nav-link.active {
+            color: #fff;
+            background: var(--expert-primary-gradient);
+            box-shadow: 0 8px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        .nav-link i { width: 24px; margin-right: 12px; font-size: 1.1rem; opacity: 0.8; }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 15px 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .toggle-sidebar {
-            background: #f8f9fa;
+            background: rgba(255,255,255,0.05);
             border: none;
             width: 32px;
             height: 32px;
             border-radius: 8px;
-            color: #4e73df;
+            color: #94a3b8;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
         }
-        .toggle-sidebar:hover { background: #eef2ff; color: #224abe; }
-        
-        .nav-link {
-            color: #6c757d;
-            font-weight: 500;
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            transition: all 0.2s;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: #4e73df;
-            background-color: #f0f4ff;
-        }
-        .nav-link i { width: 24px; margin-right: 12px; }
-        .sidebar.collapsed .nav-link i { margin-right: 0; }
-
-        .header {
-            background: white;
-            padding: 15px 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .toggle-sidebar:hover { background: rgba(255,255,255,0.1); color: #fff; }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -99,9 +129,11 @@
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column p-0 border-end" id="expertSidebar">
         <div class="sidebar-header">
-            <a class="navbar-brand sidebar-brand p-0 m-0 fw-bold fs-4 text-primary d-flex align-items-center" asp-controller="Home" asp-action="Index">
-                <img src="~/brand-logo.png" alt="Logo" height="32" class="me-2" />
-                <span class="ms-1">FirstAid<span class="text-danger">+</span></span>
+            <a class="sidebar-brand p-0 m-0 fw-bold fs-4 text-white d-flex align-items-center text-decoration-none" asp-controller="Home" asp-action="Index">
+                <div class="brand-logo-container">
+                    <img src="~/brand-logo.png" alt="Logo" class="brand-img" />
+                </div>
+                <span class="ms-3">FirstAid<span class="opacity-50">Plus</span></span>
             </a>
             <button class="toggle-sidebar" id="toggleSidebar">
                 <i class="fas fa-bars"></i>

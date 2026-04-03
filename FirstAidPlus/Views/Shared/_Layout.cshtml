@@ -16,6 +16,31 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="icon" type="image/png" href="~/brand-logo.png?v=5">
     <link rel="apple-touch-icon" href="~/brand-logo.png?v=5">
+    <style>
+        .brand-logo-container-light {
+            background: rgba(0, 0, 0, 0.03);
+            padding: 8px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .brand-logo-container-light:hover {
+            background: rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+        .brand-logo-container-dark {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+    </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -27,7 +52,9 @@
             <div class="container-fluid px-4 px-lg-5">
                 <!-- Logo -->
                 <a class="navbar-brand d-flex align-items-center me-4" asp-controller="Home" asp-action="Index">
-                    <img src="~/brand-logo.png" alt="FirstAid+ Logo" height="65" class="d-inline-block align-text-top" />
+                    <div class="brand-logo-container-light">
+                        <img src="~/brand-logo.png" alt="FirstAid+ Logo" height="40" class="d-inline-block align-text-top" />
+                    </div>
                 </a>
 
                 @if (TempData["SuccessMessage"] != null)
@@ -309,9 +336,11 @@
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-5">
-                    <div class="mb-3">
-                         <img src="~/brand-logo.png" alt="FirstAid+ Logo" height="60" style="filter: brightness(0) invert(1);" />
-                         <span class="fw-bold fs-4 ms-2 align-middle">FirstAid+</span>
+                    <div class="mb-3 d-flex align-items-center">
+                         <div class="brand-logo-container-dark">
+                            <img src="~/brand-logo.png" alt="FirstAid+ Logo" height="40" style="filter: brightness(0) invert(1);" />
+                         </div>
+                         <span class="fw-bold fs-4 ms-3 align-middle text-white">FirstAid+</span>
                     </div>
                     <p class="small text-muted mb-4" style="max-width: 350px;">Nền tảng đào tạo sơ cấp cứu trực tuyến hàng đầu. Chứng chỉ quốc tế được công nhận tại hơn 195 quốc gia.</p>
                     <div class="d-flex gap-2">

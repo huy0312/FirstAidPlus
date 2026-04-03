@@ -27,14 +27,14 @@
     <link rel="apple-touch-icon" href="~/brand-logo.png?v=5">
     <style>
         :root {
-            --admin-primary: #4f46e5;
-            --admin-primary-hover: #4338ca;
+            --admin-primary: #6366f1; /* Indigo 500 */
+            --admin-primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             --admin-bg: #f8fafc;
             --sidebar-bg: #0f172a;
-            --sidebar-hover: rgba(255, 255, 255, 0.05);
+            --sidebar-accent: rgba(99, 102, 241, 0.1);
             --sidebar-active: #ffffff;
             --sidebar-text: #94a3b8;
-            --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --topbar-height: 70px;
         }
 
@@ -108,16 +108,28 @@
             letter-spacing: -0.5px;
         }
         
-        .brand-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--admin-primary);
-            border-radius: 8px;
+        .brand-logo-container {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .brand-img {
+            height: 28px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .sidebar-brand:hover .brand-logo-container {
+            transform: rotate(5deg) scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         /* Nav Items */
@@ -136,14 +148,15 @@
         }
 
         .admin-sidebar .nav-link:hover { 
-            background: var(--sidebar-hover); 
+            background: var(--sidebar-accent); 
             color: #fff; 
+            transform: translateX(4px);
         }
 
         .admin-sidebar .nav-link.active { 
-            background: var(--admin-primary); 
+            background: var(--admin-primary-gradient); 
             color: #fff; 
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 8px 15px -3px rgba(99, 102, 241, 0.4);
             font-weight: 600;
         }
 
@@ -201,10 +214,10 @@
         <nav class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
                 <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="sidebar-brand">
-                    <div class="brand-icon bg-transparent shadow-none">
-                        <img src="~/brand-logo.png" alt="Logo" height="32" />
+                    <div class="brand-logo-container">
+                        <img src="~/brand-logo.png" alt="Logo" class="brand-img" />
                     </div>
-                    <span class="ms-2 sidebar-brand-text">FirstAid+ <span class="fw-normal opacity-50 small">Admin</span></span>
+                    <span class="ms-3 sidebar-brand-text">FirstAid<span class="text-white">Plus</span> <span class="fw-normal opacity-50 small">Admin</span></span>
                 </a>
             </div>
 
