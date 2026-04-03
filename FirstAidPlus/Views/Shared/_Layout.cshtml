@@ -14,7 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="icon" type="image/png" href="~/favicon.png?v=1">
+    <link rel="icon" type="image/png" href="~/brand-logo.png?v=5">
+    <link rel="apple-touch-icon" href="~/brand-logo.png?v=5">
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -26,7 +27,7 @@
             <div class="container-fluid px-4 px-lg-5">
                 <!-- Logo -->
                 <a class="navbar-brand d-flex align-items-center me-4" asp-controller="Home" asp-action="Index">
-                    <img src="~/favicon.png" alt="FirstAid+ Logo" height="65" class="d-inline-block align-text-top" />
+                    <img src="~/brand-logo.png" alt="FirstAid+ Logo" height="65" class="d-inline-block align-text-top" />
                 </a>
 
                 @if (TempData["SuccessMessage"] != null)
@@ -309,7 +310,7 @@
             <div class="row g-4">
                 <div class="col-md-5">
                     <div class="mb-3">
-                         <img src="~/favicon.png" alt="FirstAid+ Logo" height="60" style="filter: brightness(0) invert(1);" />
+                         <img src="~/brand-logo.png" alt="FirstAid+ Logo" height="60" style="filter: brightness(0) invert(1);" />
                          <span class="fw-bold fs-4 ms-2 align-middle">FirstAid+</span>
                     </div>
                     <p class="small text-muted mb-4" style="max-width: 350px;">Nền tảng đào tạo sơ cấp cứu trực tuyến hàng đầu. Chứng chỉ quốc tế được công nhận tại hơn 195 quốc gia.</p>
