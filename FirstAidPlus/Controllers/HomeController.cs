@@ -93,6 +93,7 @@ namespace FirstAidPlus.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        [Route("health")]
         public IActionResult Health()
         {
             return Ok("OK");
