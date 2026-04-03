@@ -25,6 +25,7 @@ builder.Services.AddScoped<FirstAidPlus.Services.IVnPayService, FirstAidPlus.Ser
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<FirstAidPlus.Services.IMoMoService, FirstAidPlus.Services.MoMoService>();
 builder.Services.AddSingleton<FirstAidPlus.Services.IAIService, FirstAidPlus.Services.GeminiAIService>();
+builder.Services.AddScoped<FirstAidPlus.Services.ICloudinaryService, FirstAidPlus.Services.CloudinaryService>();
 builder.Services.AddHostedService<FirstAidPlus.Services.SubscriptionExpirationWorker>();
 
 // PayOS Initialization

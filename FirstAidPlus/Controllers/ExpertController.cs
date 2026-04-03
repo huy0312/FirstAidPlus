@@ -14,11 +14,13 @@ namespace FirstAidPlus.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly FirstAidPlus.Services.ICloudinaryService _cloudinaryService;
 
-        public ExpertController(AppDbContext context, IHubContext<ChatHub> hubContext)
+        public ExpertController(AppDbContext context, IHubContext<ChatHub> hubContext, FirstAidPlus.Services.ICloudinaryService cloudinaryService)
         {
             _context = context;
             _hubContext = hubContext;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -263,15 +265,8 @@ namespace FirstAidPlus.Controllers
                 {
                     try 
                     {
-                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "courses");
-                        Directory.CreateDirectory(uploadsFolder);
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await imageFile.CopyToAsync(fileStream);
-                        }
-                        course.ImageUrl = "/images/courses/" + uniqueFileName;
+                        var imageUrl = await _cloudinaryService.UploadImageAsync(imageFile, "courses");
+                        course.ImageUrl = imageUrl;
                     }
                     catch (Exception ex)
                     {
@@ -349,17 +344,10 @@ namespace FirstAidPlus.Controllers
              {
                  try
                  {
-                     if (imageFile != null && imageFile.Length > 0)
+                    if (imageFile != null && imageFile.Length > 0)
                     {
-                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "courses");
-                        Directory.CreateDirectory(uploadsFolder);
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await imageFile.CopyToAsync(fileStream);
-                        }
-                        course.ImageUrl = "/images/courses/" + uniqueFileName;
+                        var imageUrl = await _cloudinaryService.UploadImageAsync(imageFile, "courses");
+                        course.ImageUrl = imageUrl;
                     }
                     else
                     {
@@ -728,15 +716,8 @@ namespace FirstAidPlus.Controllers
 
             if (certFile != null && certFile.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "certs");
-                Directory.CreateDirectory(uploadsFolder);
-                var uniqueFileName = Guid.NewGuid().ToString() + "_" + certFile.FileName;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await certFile.CopyToAsync(fileStream);
-                }
-                qual.CertificateUrl = "/uploads/certs/" + uniqueFileName;
+                var certUrl = await _cloudinaryService.UploadImageAsync(certFile, "certs");
+                qual.CertificateUrl = certUrl;
             }
 
             _context.Qualifications.Add(qual);
