@@ -29,6 +29,16 @@ namespace FirstAidPlus.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                var activeSub = await _context.UserSubscriptions
+                    .Include(s => s.Plan)
+                    .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "Active" && (s.EndDate == null || s.EndDate > DateTime.UtcNow));
+                
+                ViewBag.ActiveSubscription = activeSub;
+            }
+
             var plans = await _context.Plans.ToListAsync();
             return View(plans);
         }
