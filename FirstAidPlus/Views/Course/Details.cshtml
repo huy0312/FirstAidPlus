@@ -561,7 +561,7 @@
                     }
 
                     <!-- Feedback Form -->
-                    @if (Model.HasDirectEnrollment)
+                    @if (Model.IsEnrolled)
                     {
                         <div class="feedback-form-card mt-4">
                             <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square me-2"></i>Viết đánh giá của bạn</h6>
@@ -636,7 +636,7 @@
                 </div>
                 
                 <div class="purchase-card-content">
-                    @if (Model.HasDirectEnrollment)
+                    @if (Model.IsEnrolled)
                     {
                         <div class="text-center mb-3">
                             <i class="bi bi-patch-check-fill text-success fs-1"></i>
@@ -653,7 +653,14 @@
                     else
                     {
                         <div class="mb-3">
-                            <span class="fs-2 fw-bold">Miễn phí</span>
+                            @if (Model.IsEnrolled && !Model.HasDirectEnrollment)
+                            {
+                                <span class="badge bg-success mb-2">Đã bao gồm trong gói Plus</span>
+                            }
+                            else
+                            {
+                                <span class="fs-2 fw-bold">Miễn phí</span>
+                            }
                         </div>
                         
                         <form asp-controller="Enrollment" asp-action="Purchase" method="post">

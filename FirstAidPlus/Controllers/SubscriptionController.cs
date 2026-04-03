@@ -34,7 +34,9 @@ namespace FirstAidPlus.Controllers
             {
                 var activeSub = await _context.UserSubscriptions
                     .Include(s => s.Plan)
-                    .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "Active" && (s.EndDate == null || s.EndDate > DateTime.UtcNow));
+                    .Where(s => s.UserId == userId && s.Status == "Active" && (s.EndDate == null || s.EndDate > DateTime.UtcNow))
+                    .OrderByDescending(s => s.EndDate)
+                    .FirstOrDefaultAsync();
                 
                 ViewBag.ActiveSubscription = activeSub;
             }

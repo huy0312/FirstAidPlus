@@ -10,7 +10,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata_new_v18:/var/lib/postgresql
 
   app:
     build:
@@ -42,4 +42,4 @@ services:
       - Momo__SecretKey=${MOMO_SECRET_KEY}
 
 volumes:
-  pgdata:
+  pgdata_new_v18:

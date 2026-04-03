@@ -1,4 +1,5 @@
 @using FirstAidPlus.Repositories
+@using Microsoft.EntityFrameworkCore
 @inject ICourseRepository CourseRepository
 <!DOCTYPE html>
 <html lang="en">
@@ -141,6 +142,21 @@
 
                             @if (User.Identity.IsAuthenticated)
                             {
+                                    bool hasActiveSubscription = false;
+                                    var dbContext = Context.RequestServices.GetService<FirstAidPlus.Data.AppDbContext>();
+                                    if (dbContext != null)
+                                    {
+                                        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                        if (int.TryParse(userIdClaim, out int uid))
+                                        {
+                                            hasActiveSubscription = await dbContext.UserSubscriptions
+                                                .AnyAsync(s => s.UserId == uid && s.Status == "Active" && (s.EndDate == null || s.EndDate > DateTime.Now));
+                                        }
+                                    }
+
+                                    var fullName = User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity.Name;
+                                    var avatarUrl = User.Claims.FirstOrDefault(c => c.Type == "AvatarUrl")?.Value;
+
                                 <!-- Notification Bell -->
                                 <div class="dropdown">
                                     <a href="#" class="text-dark text-decoration-none position-relative opacity-75 hover-opacity-100 transition-all" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo">
@@ -161,20 +177,6 @@
                                         </li>
                                     </ul>
                                 </div>
-
-                                bool hasActiveSubscription = false;
-                                var dbContext = Context.RequestServices.GetService<FirstAidPlus.Data.AppDbContext>();
-                                if (dbContext != null)
-                                {
-                                    var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                                    if (int.TryParse(userIdClaim, out int uid))
-                                    {
-                                        hasActiveSubscription = dbContext.UserSubscriptions.Any(s => s.UserId == uid && s.Status == "Active" && s.EndDate > DateTime.UtcNow);
-                                    }
-                                }
-
-                                var fullName = User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? User.Identity.Name;
-                                var avatarUrl = User.Claims.FirstOrDefault(c => c.Type == "AvatarUrl")?.Value;
                                 <div class="dropdown">
                                     <a class="nav-link dropdown-toggle text-dark fw-bold small d-flex align-items-center p-0 ms-2" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border: none !important; box-shadow: none !important;">
                                         <div class="position-relative">
@@ -311,7 +313,8 @@
                     </div>
                     <p class="small text-muted mb-4" style="max-width: 350px;">Nền tảng đào tạo sơ cấp cứu trực tuyến hàng đầu. Chứng chỉ quốc tế được công nhận tại hơn 195 quốc gia.</p>
                     <div class="d-flex gap-2">
-                        <a href="#" class="btn btn-outline-secondary btn-sm rounded-1 text-white border-secondary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.facebook.com/FirstAidPlus.facebook" target="_blank" class="btn btn-outline-secondary btn-sm rounded-1 text-white border-secondary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/firstaidplus_official/" target="_blank" class="btn btn-outline-secondary btn-sm rounded-1 text-white border-secondary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-instagram"></i></a>
                         <a href="#" class="btn btn-outline-secondary btn-sm rounded-1 text-white border-secondary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-linkedin-in"></i></a>
                         <a href="#" class="btn btn-outline-secondary btn-sm rounded-1 text-white border-secondary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"><i class="fab fa-youtube"></i></a>
                     </div>

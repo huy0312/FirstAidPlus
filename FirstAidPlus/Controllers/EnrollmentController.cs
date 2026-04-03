@@ -103,7 +103,7 @@ namespace FirstAidPlus.Controllers
                 UserId = instructorUserId,
                 Title = "Học viên mới",
                 Message = $"{notificationName} vừa đăng ký khóa học: {course.Title}",
-                Link = "/Expert/Dashboard", // Link to dashboard statistics
+                Link = Url.Action("Dashboard", "Expert"), // Relative link to expert dashboard
                 CreatedAt = DateTime.UtcNow
             };
             
@@ -161,6 +161,18 @@ namespace FirstAidPlus.Controllers
                 {
                     Console.WriteLine($"Error sending email: {ex.Message}");
                 }
+            }
+
+            var firstLesson = await _context.CourseLessons
+                .Where(l => l.Syllabus.CourseId == courseId)
+                .OrderBy(l => l.OrderIndex)
+                .ThenBy(l => l.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (firstLesson != null)
+            {
+                TempData["SuccessMessage"] = $"Đã tham gia khóa học: {course.Title}";
+                return RedirectToAction("Lesson", "Course", new { id = firstLesson.Id });
             }
 
             return RedirectToAction("Success", new { courseId = courseId });

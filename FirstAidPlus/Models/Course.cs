@@ -16,6 +16,7 @@ namespace FirstAidPlus.Models
         public bool IsActive { get; set; } = true;
         public bool IsPopular { get; set; }
         public string? Category { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public int? InstructorId { get; set; }
         [ForeignKey("InstructorId")]
